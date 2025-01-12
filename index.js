@@ -30,7 +30,6 @@ const wsServer = new WebSocketServer({ port: 8080 });
 let clients = new Map();
 
 wsServer.on('connection', (ws) => {
-    const tId='ab652b1b-1baa-493f-ac4b-43fbf617a5a8,4132897d-7cf6-4f7b-9c5d-e5a577577bc3'
     const id = uuidv4();
     clients.set(id, ws);
     ws.id = id;
@@ -56,7 +55,7 @@ app.use((req, res, next) => {
 // Middleware
 app.use(cors({
     credentials: true,
-    origin: ['http://localhost:3000'],
+    origin: ['http://localhost:3000','https://styyze.vercel.app/'],
     methods: ["GET", "POST", "DELETE", "PUT"]
 }));
 app.use(express.json());
