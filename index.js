@@ -1,60 +1,90 @@
-import express from 'express'
-import dotenv from 'dotenv'
-import cookieParser from 'cookie-parser'
-import cors from 'cors'
-import mongoose from 'mongoose'
-import authRoute from './routes/auth.js'
+import express from 'express';
+import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import mongoose from 'mongoose';
+import WebSocket, { WebSocketServer } from 'ws';
+import { v4 as uuidv4 } from 'uuid';
+import authRoute from './routes/auth.js';
+import postRoute from './routes/auth.js';
+import searchPostpostRoute from './routes/auth.js';
 
 
-
-
-const app= express();
+const app = express();
 dotenv.config();
 
-const connect= async ()=>{
-try{
-    await mongoose.connect(process.env.MONGO);
-    console.log('conncted to mongoDB');
-}
-catch(error){
-    throw error;
-}
+const connect = async () => {
+    try {
+        await mongoose.connect(process.env.MONGO);
+        console.log('Connected to MongoDB');
+    } catch (error) {
+        throw error;
+    }
 };
-mongoose.connection.on("disconnected", ()=>{
+mongoose.connection.on('disconnected', () => {
     console.log('MongoDB disconnected!');
 });
 
+// Set up WebSocket server
+const wsServer = new WebSocketServer({ port: 8080 });
+let clients = new Map();
 
+wsServer.on('connection', (ws) => {
+    const tId='ab652b1b-1baa-493f-ac4b-43fbf617a5a8,4132897d-7cf6-4f7b-9c5d-e5a577577bc3'
+    const id = uuidv4();
+    clients.set(id, ws);
+    ws.id = id;
 
-//middleware   
+    // Send the assigned ID to the client
+    ws.send(JSON.stringify({ clientId: id }));
 
-app.use(cors({  credentials: true, 
-    origin: ['http://localhost:3000'], 
-    methods:["GET","POST","DELETE","PUT"]
-    }))
+    ws.on('close', () => {
+        clients.delete(id);
+    });
 
-app.use(express.json())
-app.use(cookieParser())
+    ws.on('message', (message) => {
+        console.log(`index.js message: ${message}`);
+    });
+});
+
+// Middleware to pass WebSocket clients map
+app.use((req, res, next) => {
+    req.clients = clients;
+    next();
+});
+
+// Middleware
+app.use(cors({
+    credentials: true,
+    origin: ['http://localhost:3000'],
+    methods: ["GET", "POST", "DELETE", "PUT"]
+}));
+app.use(express.json());
+app.use(cookieParser());
 app.options('*', cors());
 
-app.use("/api/auth", authRoute)
+// Routes
+app.use("/api/auth", authRoute);
+app.use("/api/posts", postRoute); 
+app.use("/api",searchPostpostRoute)
 
-app.use((err,req,res,next)=>{
-const errStatus= err.status || 500 
-const errMessage= err.message || 'Something went wrong'
+// Error handling middleware
+app.use((err, req, res, next) => {
+    const errStatus = err.status || 500;
+    const errMessage = err.message || 'Something went wrong';
 
-return res.status(errStatus).json({
-    success:false,
-    status:errStatus,
-    message:errMessage,
-    stack:err.stack,
-
+    return res.status(errStatus).json({
+        success: false,
+        status: errStatus,
+        message: errMessage,
+        stack: err.stack,
+    });
 });
-})
 
-
-
-app.listen(5000, ()=>{
+// Start server
+app.listen(5000, () => {
     connect();
-    console.log('connected to server')
-})
+    console.log('Connected to server');
+    console.log('WebSocket server is running on ws://localhost:8080');
+});
+
