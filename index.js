@@ -7,6 +7,8 @@ import WebSocket, { WebSocketServer } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import authRoute from './routes/auth.js';
 import postRoute from './routes/auth.js';
+import loginRoute from './routes/login.js';
+
 import searchPostpostRoute from './routes/auth.js';
 
 
@@ -64,7 +66,9 @@ app.options('*', cors());
 
 // Routes
 app.use("/api/auth", authRoute);
-app.use("/api/posts", postRoute); 
+app.use("/api/", loginRoute); 
+app.use("/api/", postRoute); 
+
 app.use("/api",searchPostpostRoute)
 
 // Error handling middleware
