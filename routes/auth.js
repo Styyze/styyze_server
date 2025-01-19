@@ -1,6 +1,6 @@
 import express from 'express'
 
-import {register,users,login} from '../controllers/auth.js'
+import {register,users} from '../controllers/auth.js'
 import {post} from '../controllers/posts.js'
 import {searchPost} from '../controllers/searchPost.js'
 
