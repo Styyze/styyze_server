@@ -66,8 +66,8 @@ app.options('*', cors());
 
 // Routes
 app.use("/api/auth", authRoute);
-app.use("/api/", loginRoute); 
-app.use("/api/", postRoute); 
+app.use("/api", loginRoute); 
+app.use("/api", postRoute); 
 
 app.use("/api",searchPostpostRoute)
 
