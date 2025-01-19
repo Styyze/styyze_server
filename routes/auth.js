@@ -10,7 +10,6 @@ const router = express.Router();
 
 router.post('/', register);
 router.post('/sign_up', users);
-router.post('/login', login)
 router.post('/posts', post)
 router.get('/search', searchPost)
 
