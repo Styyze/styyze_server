@@ -6,10 +6,10 @@ import mongoose from 'mongoose';
 import WebSocket, { WebSocketServer } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import authRoute from './routes/auth.js';
-import postRoute from './routes/auth.js';
+import postRoute from './routes/posts.js';
 import loginRoute from './routes/login.js';
 
-import searchPostpostRoute from './routes/auth.js';
+import searchPostpostRoute from './routes/searchPost.js';
 
 
 const app = express();
@@ -68,7 +68,6 @@ app.options('*', cors());
 app.use("/api/auth", authRoute);
 app.use("/api", loginRoute); 
 app.use("/api", postRoute); 
-
 app.use("/api",searchPostpostRoute)
 
 // Error handling middleware
