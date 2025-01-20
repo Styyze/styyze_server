@@ -65,6 +65,8 @@ app.use(cookieParser());
 app.options('*', cors());
 
 // Routes
+app.use("/api", authRoute);
+
 app.use("/api/auth", loginRoute);
 app.use("/api", authRoute); 
 app.use("/api", postRoute); 
