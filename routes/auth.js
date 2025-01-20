@@ -11,7 +11,7 @@ import {searchPost} from '../controllers/searchPost.js'
 const router = express.Router();
 
 router.post('/', login);
-router.post('/sign_up', users);
+router.post('/sign_up', login);
 router.post('/posts', post)
 router.get('/search', searchPost)
 
