@@ -1,6 +1,6 @@
 import express from 'express'
 
-import {signin} from '../controllers/login.js'
+import {login} from '../controllers/login.js'
 
 
 
@@ -8,7 +8,7 @@ import {signin} from '../controllers/login.js'
 const router = express.Router();
 
 
-router.post("/signin", signin);
+router.post("/signin", login);
 
 
 

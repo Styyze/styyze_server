@@ -1,13 +1,12 @@
-import WaitListSchema from '../models/WaitList.js'
-import UserSchema from '../models/Users.js';
+import WaitList from '../models/WaitList.js'
+import User from '../models/Users.js';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 
 // Add Email to Waitlist
 export const register= async (req,res,next)=>{
  console.log(req.body.email);
     try{
-  const newUser= new WaitListSchema({
+  const newUser= new WaitList({
    email: req.body.email
     
 
@@ -40,7 +39,7 @@ export const users= async (req,res,next)=>{
   try{
     const salt=bcrypt.genSaltSync(10)
     const hash=bcrypt.hashSync(req.body.password,salt)
-const newUser= new UserSchema({
+const newUser= new User({
   ...req.body,
   password:hash,})
   

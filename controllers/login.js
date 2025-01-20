@@ -1,4 +1,4 @@
-import UserSchema from '../models/User.js';
+import User from '../models/Users.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
@@ -6,7 +6,7 @@ export const login = async (req, res) => {
     const { username, password } = req.body;
 
     try {
-        const user = await UserSchema.findOne({ username });
+        const user = await User.findOne({ username });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
