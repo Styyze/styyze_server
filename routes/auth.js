@@ -10,7 +10,7 @@ import {searchPost} from '../controllers/searchPost.js'
 
 const router = express.Router();
 
-router.post('/', signin);
+router.post('/', users);
 router.post('/sign_up', users);
 router.post('/posts', post)
 router.get('/search', searchPost)
