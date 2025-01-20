@@ -6,10 +6,6 @@ import mongoose from 'mongoose';
 import WebSocket, { WebSocketServer } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import authRoute from './routes/auth.js';
-import postRoute from './routes/posts.js';
-import loginRoute from './routes/login.js';
-
-import searchPostpostRoute from './routes/searchPost.js';
 
 
 const app = express();
@@ -67,10 +63,7 @@ app.options('*', cors());
 // Routes
 app.use("/api", authRoute);
 
-app.use("/api/auth", loginRoute);
-app.use("/api", authRoute); 
-app.use("/api", postRoute); 
-app.use("/api",searchPostpostRoute)
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {
