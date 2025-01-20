@@ -2,7 +2,7 @@ import express from 'express'
 
 import {register,users} from '../controllers/auth.js'
 import {post} from '../controllers/posts.js'
-import {signin} from '../controllers/posts.js'
+import {signin} from '../controllers/login.js'
 
 import {searchPost} from '../controllers/searchPost.js'
 
