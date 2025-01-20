@@ -1,7 +1,6 @@
 import WaitList from '../models/WaitList.js'
 import User from '../models/Users.js';
 import bcrypt from 'bcryptjs';
-import {createError} from '../utils/error.js'
 
 
 // Add Email to Waitlist
