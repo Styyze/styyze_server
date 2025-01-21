@@ -63,9 +63,9 @@ console.log("user created!")
 export const login= async(req,res,next)=>{
   try{
 const user= await User.findOne({username:req.body.username})
-if(!user) return res.send(404, "user not found"));
+if(!user) return res.send(404, "user not found");
 const isPasswordCorrect= await bcrypt.compare(req.body.password, user.password)
-if(!isPasswordCorrect) return res.send(400, "wrong password or username"));
+if(!isPasswordCorrect) return res.send(400, "wrong password or username");
 const token= jwt.sign({id:user._id, isAdmin: user.isAdmin}, process.env.JWT)
 
 const {password, isAdmin, ...otherDetails}=user._doc
