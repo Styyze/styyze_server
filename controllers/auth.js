@@ -80,7 +80,7 @@ res.cookie("access_token",token, {
 
 export const AdminLogin = async (req, res, next) => {
   try {
-    const admin = await Admin.findOne({ username: req.body.username });
+    const admin = await User.findOne({ username: req.body.username });
     if (!admin) return next(createError(404, "No user found"));
 
     const isPasswordCorrect = await bcrypt.compare(req.body.password, admin.password);
