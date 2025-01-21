@@ -81,10 +81,10 @@ res.cookie("access_token",token, {
 export const AdminLogin = async (req, res, next) => {
   try {
     const admin = await User.findOne({ username: req.body.username });
-    if (!admin) return next(createError(404, "No user found"));
+    if (!admin) return res.send("No user found");
 
     const isPasswordCorrect = await bcrypt.compare(req.body.password, admin.password);
-    if (!isPasswordCorrect) return next(createError(400, "Wrong password or username"));
+    if (!isPasswordCorrect) return res.send( "Wrong password or username");
 
     const token = jwt.sign({
       id: admin._id,
