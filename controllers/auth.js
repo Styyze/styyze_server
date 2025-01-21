@@ -77,3 +77,34 @@ res.cookie("access_token",token, {
     next(err)
   }
 }
+
+export const AdminLogin = async (req, res, next) => {
+  try {
+    const admin = await Admin.findOne({ username: req.body.username });
+    if (!admin) return next(createError(404, "No user found"));
+
+    const isPasswordCorrect = await bcrypt.compare(req.body.password, admin.password);
+    if (!isPasswordCorrect) return next(createError(400, "Wrong password or username"));
+
+    const token = jwt.sign({
+      id: admin._id,
+      isAdmin: admin.isAdmin,
+      username: admin.username 
+    }, "#@%itsx#$%trong");
+
+    // Exclude sensitive details from the response
+    const { password, isAdmin, ...otherDetails } = admin._doc;
+
+    // Send the token as a cookie to the client
+    res.cookie("access_token", token, {
+      httpOnly: true
+    }).status(200).json({
+      details: { ...otherDetails, username: admin.username }, 
+      isAdmin
+    });
+    
+    console.log('hello login');
+  } catch (err) {
+    next(err);
+  }
+}
