@@ -53,7 +53,9 @@ app.use((req, res, next) => {
 // Middleware
 app.use(cors({
     credentials: true,
-    origin: ['http://localhost:3000','https://styyze.vercel.app/'],
+    origin: ['http://localhost:3000',
+    'https://styyze.vercel.app/',
+    'https://styyze-server.onrender.com'],
     methods: ["GET", "POST", "DELETE", "PUT"]
 }));
 app.use(express.json());
