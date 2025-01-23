@@ -3,12 +3,24 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import mongoose from 'mongoose';
-import WebSocket, { WebSocketServer } from 'ws';
-import { v4 as uuidv4 } from 'uuid';
+import { Server } from 'socket.io';
+import { createServer } from 'http';
 import authRoute from './routes/auth.js';
 
-const app = express();
 dotenv.config();
+
+const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+    cors: {
+        origin: [
+            'http://localhost:3000',
+            'https://styyze.vercel.app',
+            'https://styyze-server.onrender.com',
+        ],
+        methods: ["GET", "POST"]
+    }
+});
 
 const connect = async () => {
     try {
@@ -23,63 +35,9 @@ mongoose.connection.on('disconnected', () => {
     console.log('MongoDB disconnected!');
 });
 
-// Function to check origin
-function checkOrigin(origin) {
-    const allowedOrigins = ["http://localhost:3000",
-     "https://styyze-server.onrender.com:8080",
-     "https://styyze.vercel.app"];
-    if (!origin) {
-        console.log('No origin specified, allowing connection for development.');
-        return true; 
-    }
-    return allowedOrigins.includes(new URL(origin).origin);
-}
-
-// Set up WebSocket server
-const wsServer = new WebSocketServer({ port: 8080 });
-let clients = new Map();
-
-function heartbeat() {
-    this.isAlive = true;
-}
-
-wsServer.on('connection', (ws, req) => {
-    console.log('New connection from', req.socket.remoteAddress);
-
-    const origin = req.headers.origin;
-    if (!checkOrigin(origin)) {
-        console.log('Connection from invalid origin:', origin);
-        ws.close(1008, 'Forbidden'); // Use a valid close code
-        return;
-    }
-
-    ws.isAlive = true;
-    ws.on('pong', heartbeat);
-
-    const id = uuidv4();
-    clients.set(id, ws);
-    ws.id = id;
-
-    // Send the assigned ID to the client
-    ws.send(JSON.stringify({ clientId: id }));
-
-    ws.on('close', () => {
-        console.log('Connection closed for', id);
-        clients.delete(id);
-    });
-
-    ws.on('message', (message) => {
-        console.log(`Message from ${id}: ${message}`);
-    });
-
-    ws.on('error', (error) => {
-        console.error('WebSocket error:', error);
-    });
-});
-
-// Middleware to pass WebSocket clients map
+// Middleware to pass Socket.IO clients
 app.use((req, res, next) => {
-    req.clients = clients;
+    req.io = io;
     next();
 });
 
@@ -88,8 +46,7 @@ app.use(cors({
     credentials: true,
     origin: [
         'http://localhost:3000',
-        'https://styyze.vercel.app/',
-        'https://styyze-server.onrender.com:8080',
+        'https://styyze.vercel.app',
         'https://styyze-server.onrender.com'
     ],
     methods: ["GET", "POST", "DELETE", "PUT"]
@@ -114,22 +71,25 @@ app.use((err, req, res, next) => {
     });
 });
 
-const interval = setInterval(() => {
-    wsServer.clients.forEach((ws) => {
-        if (!ws.isAlive) return ws.terminate();
+// Socket.IO Connection
+io.on('connection', (socket) => {
+    console.log('New client connected:', socket.id);
 
-        ws.isAlive = false;
-        ws.ping();
+    // Send the assigned ID to the client
+    socket.emit('clientId', { clientId: socket.id });
+
+    socket.on('disconnect', () => {
+        console.log('Client disconnected:', socket.id);
     });
-}, 30000);
 
-wsServer.on('close', () => {
-    clearInterval(interval);
+    socket.on('error', (error) => {
+        console.error('Socket.IO error:', error);
+    });
 });
 
 // Start server
-app.listen(5000, () => {
+httpServer.listen(5000, () => {
     connect();
     console.log('Connected to server');
-    console.log('WebSocket server is running on wss://localhost:8080');
+    console.log('Socket.IO server is running on port 5000');
 });
