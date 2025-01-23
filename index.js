@@ -18,7 +18,8 @@ const io = new Server(httpServer, {
             'https://styyze.vercel.app',
             'https://styyze-server.onrender.com',
         ],
-        methods: ["GET", "POST"]
+        methods: ["GET", "POST"],
+        credentials: true // Allow credentials
     }
 });
 
