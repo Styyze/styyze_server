@@ -25,10 +25,12 @@ mongoose.connection.on('disconnected', () => {
 
 // Function to check origin
 function checkOrigin(origin) {
-    const allowedOrigins = ["//localhost", "//styyze-server.onrender.com", "//styyze.vercel.app"];
+    const allowedOrigins = ["http://localhost:3000",
+     "https://styyze-server.onrender.com:8080",
+     "https://styyze.vercel.app"];
     if (!origin) {
         console.log('No origin specified, allowing connection for development.');
-        return true; // Allow connection if origin is undefined
+        return true; 
     }
     return allowedOrigins.includes(new URL(origin).origin);
 }
@@ -87,7 +89,7 @@ app.use(cors({
     origin: [
         'http://localhost:3000',
         'https://styyze.vercel.app/',
-        'http://styyze-server.onrender.com:8080',
+        'https://styyze-server.onrender.com:8080',
         'https://styyze-server.onrender.com'
     ],
     methods: ["GET", "POST", "DELETE", "PUT"]
