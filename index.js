@@ -129,5 +129,5 @@ wsServer.on('close', () => {
 app.listen(5000, () => {
     connect();
     console.log('Connected to server');
-    console.log('WebSocket server is running on ws://localhost:8080');
+    console.log('WebSocket server is running on wss://localhost:8080');
 });
