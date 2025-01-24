@@ -19,7 +19,7 @@ const io = new Server(httpServer, {
             'https://styyze-server.onrender.com',
         ],
         methods: ["GET", "POST"],
-        credentials: true // Allow credentials
+        credentials: true 
     }
 });
 
