@@ -47,6 +47,7 @@ app.use(cors({
     credentials: true,
     origin: [
         'http://localhost:3000',
+        'http://localhost:5173',
         'https://styyze.vercel.app',
         'https://styyze-server.onrender.com'
     ],
