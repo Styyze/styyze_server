@@ -31,3 +31,13 @@ export const post = async (req, res, next) => {
         });
     }
 };
+
+//Get all posts
+export const getPosts= async (req,res,next)=>{
+    try{
+        const posts= await Post.find()
+        res.status(200).json(posts)
+        }catch(err){
+            next(err)
+        }
+}
