@@ -6,6 +6,8 @@ import mongoose from 'mongoose';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
 import authRoute from './routes/auth.js';
+import postRoute from './routes/posts.js';
+
 
 dotenv.config();
 
@@ -59,6 +61,8 @@ app.options('*', cors());
 
 // Routes
 app.use("/api", authRoute);
+app.use("/api", postRoute);
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {
