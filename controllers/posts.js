@@ -3,15 +3,23 @@ import Post from '../models/Post.js';
 
 export const post = async (req, res, next) => {
     try {
-        const newPost = new Post({
-            userId: req.body.userId,
-            content: req.body.content,
-            media: req.body.media
-        });
+        
+        const { userId, caption, media, location, tags } = req.body;
 
+        // Create a new post instance
+        const newPost = new Post({
+            userId,
+            caption,
+            media,
+            location: {
+                lat: location.lat,
+                lng: location.lng
+            },
+            tags
+        });
         await newPost.save();
 
-        // Notify all clients about the new post using Socket.IO
+        // Notify the client about the new post
         req.io.emit('newPost', newPost);
 
         console.log(`New post created by userId: ${req.body.userId}`);
