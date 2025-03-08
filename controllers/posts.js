@@ -11,10 +11,7 @@ console.log(clientId);
             userId,
             caption,
             media,
-            location: location ? {
-                lat: location.lat,
-                lng: location.lng
-            } : undefined,
+            location: location,
             tags
         });
         await newPost.save();
