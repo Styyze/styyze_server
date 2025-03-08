@@ -27,14 +27,14 @@ const PostSchema = new mongoose.Schema({
         type: {
             lat: {
                 type: Number,
-                required: true,
+                required: false,
             },
             lng: {
                 type: Number,
-                required: true,
+                required: false,
             }
         },
-        required: true,
+        required: false,
     },
     tags: [{
         type: String,

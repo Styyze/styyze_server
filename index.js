@@ -6,6 +6,9 @@ import mongoose from 'mongoose';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
 import authRoute from './routes/auth.js';
+
+import followRoute from './routes/follow.js';
+
 import postRoute from './routes/posts.js';
 
 
@@ -61,6 +64,7 @@ app.options('*', cors());
 
 // Routes
 app.use("/api", authRoute);
+app.use("/api", followRoute);
 app.use("/api", postRoute);
 
 
