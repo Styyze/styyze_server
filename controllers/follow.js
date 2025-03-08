@@ -13,19 +13,24 @@ export const follow = async (req, res, next) => {
               const newFollow = new Follow({ follower: userId, following: targetUserId });
               await newFollow.save();
               console.log("User followed successfully.");
+              res.status(200).send({data:1})
             } else {
               console.log("User is already following the target user.");
+              res.status(200).send({data:1})
             }
           } catch (error) {
             console.error("Error following user:", error);
           }
 };
 
-export const unfollowUser = async (userId, targetUserId) => {
+export const unfollowUser = async (req, res) => {
+    const {userId, targetUserId} = req.body; 
+
     try {
       await Follow.findOneAndDelete({ follower: userId, following: targetUserId });
+      res.status(200).send({data:0});
       console.log("User unfollowed successfully.");
     } catch (error) {
-      console.error("Error unfollowing user:", error);
+      console.error("Error unfollowing user:");
     }
   };

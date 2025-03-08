@@ -24,18 +24,11 @@ const PostSchema = new mongoose.Schema({
         altText: String,
     }],
     location: {
-        type: {
-            lat: {
-                type: Number,
-                required: false,
-            },
-            lng: {
-                type: Number,
-                required: false,
-            }
-        },
-        required: false,
+            type: String,
+            required: false,
+            trim: true,             
     },
+
     tags: [{
         type: String,
         trim: true,
