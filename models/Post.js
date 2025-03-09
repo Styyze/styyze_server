@@ -6,33 +6,34 @@ const PostSchema = new mongoose.Schema({
         ref: 'User',
         required: true,
     },
-    caption: {
-        type: String,
-        trim: true,
-        default: '',
-    },
-    media: [{
-        type: {
+    postData: {
+        caption: {
             type: String,
-            enum: ['image', 'video', 'emoji'],
-            required: false,
+            trim: true,
+            default: '',
         },
-        url: {
-            type: String,
-            required: false,
-        },
-        altText: String,
-    }],
-    location: {
+        file: [{
+            type: {
+                type: String,
+                enum: ['image', 'video', 'emoji'],
+                required: false,
+            },
+            url: {
+                type: String,
+                required: false,
+            },
+            altText: String,
+        }],
+        location: {
             type: String,
             required: false,
             trim: true,             
+        },
+        tags: [{
+            type: String,
+            trim: true,
+        }],
     },
-
-    tags: [{
-        type: String,
-        trim: true,
-    }],
     createdAt: {
         type: Date,
         default: Date.now,

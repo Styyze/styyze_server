@@ -3,17 +3,20 @@ import Post from '../models/Post.js';
 
 export const post = async (req, res, next) => {
     try {
-        
-        const { userId, caption, media, location, tags,clientId } = req.body;
-console.log(clientId);
-        // Create a new post instance
-        const newPost = new Post({
-            userId,
+        const { userId, postData, clientId } = req.body;
+    console.log(clientId);
+
+    const { caption, file, location, tags } = postData;
+
+    const newPost = new Post({
+        userId,
+        postData: {
             caption,
-            media,
-            location: location,
+            file,
+            location,
             tags
-        });
+        }
+    });
         await newPost.save();
 
         // Notify the client about the new post
