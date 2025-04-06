@@ -9,6 +9,8 @@ import authRoute from './routes/auth.js';
 import followRoute from './routes/follow.js';
 import unfollowRoute from './routes/unfollow.js';
 import postRoute from './routes/posts.js';
+import usersRoute from './routes/users.js';
+
 
 
 dotenv.config();
@@ -65,7 +67,7 @@ app.options('*', cors());
 app.use("/api", authRoute);
 app.use("/api", followRoute);
 app.use("/api", unfollowRoute);
-
+app.use("/api", usersRoute);
 app.use("/api", postRoute);
 
 

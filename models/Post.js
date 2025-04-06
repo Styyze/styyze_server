@@ -12,18 +12,7 @@ const PostSchema = new mongoose.Schema({
             trim: true,
             default: '',
         },
-        file: [{
-            type: {
-                type: String,
-                enum: ['image', 'video', 'emoji'],
-                required: false,
-            },
-            url: {
-                type: String,
-                required: false,
-            },
-            altText: String,
-        }],
+        file: [String],
         location: {
             type: String,
             required: false,
