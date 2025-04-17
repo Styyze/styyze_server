@@ -10,6 +10,7 @@ import followRoute from './routes/follow.js';
 import unfollowRoute from './routes/unfollow.js';
 import postRoute from './routes/posts.js';
 import usersRoute from './routes/users.js';
+import userProfileRoute from './routes/userProfile.js';
 
 
 
@@ -69,6 +70,8 @@ app.use("/api", followRoute);
 app.use("/api", unfollowRoute);
 app.use("/api", usersRoute);
 app.use("/api", postRoute);
+app.use("/api", userProfileRoute);
+
 
 
 // Error handling middleware

@@ -19,7 +19,11 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
- 
+  createdAt: { 
+    type: Date,
+    default: Date.now, 
+    immutable: true, 
+  }
 });
 
 UserSchema.index({ email: 1 }, { unique: true });
