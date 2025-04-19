@@ -49,11 +49,24 @@ const user = await User.findById(id);
 };
 
 //Get all profile
-export const getUserProfile= async (req,res,next)=>{
-    try{
-        const profiles = await UserProfile.find().lean()      
-        res.status(200).json(posts)
-        }catch(err){
-            next(err)
+export const getUserProfile = async (req, res, next) => {
+    try {
+        const { userId } = req.params; 
+        console.log(userId);
+
+        const profile = await UserProfile.findOne({ id: userId }); 
+
+        if (!profile) {
+            return res.status(404).json({ success: false, message: "User profile not found" });
         }
-}
+
+        res.status(200).json({ success: true, data: profile });
+    } catch (err) {
+        console.error("Error fetching user profile:", err);
+        res.status(500).json({
+            success: false,
+            message: "There was an error processing your request",
+            error: err.message,
+        });
+    }
+};

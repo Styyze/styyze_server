@@ -12,6 +12,7 @@ import postRoute from './routes/posts.js';
 import usersRoute from './routes/users.js';
 import userProfileRoute from './routes/userProfile.js';
 
+import getUserProfileRoute from './routes/getUserProfile.js';
 
 
 dotenv.config();
@@ -71,6 +72,7 @@ app.use("/api", unfollowRoute);
 app.use("/api", usersRoute);
 app.use("/api", postRoute);
 app.use("/api", userProfileRoute);
+app.use("/api", getUserProfileRoute);
 
 
 
