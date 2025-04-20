@@ -11,14 +11,15 @@ import unfollowRoute from './routes/unfollow.js';
 import postRoute from './routes/posts.js';
 import usersRoute from './routes/users.js';
 import userProfileRoute from './routes/userProfile.js';
-
 import getUserProfileRoute from './routes/getUserProfile.js';
-
 
 dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
+
+const PORT = process.env.PORT || 5000;
+
 const io = new Server(httpServer, {
     cors: {
         origin: [
@@ -33,15 +34,24 @@ const io = new Server(httpServer, {
 
 const connect = async () => {
     try {
-        await mongoose.connect(process.env.MONGO);
+        await mongoose.connect(process.env.MONGO, {
+            serverSelectionTimeoutMS: 5000,
+            socketTimeoutMS: 45000
+        });
         console.log('Connected to MongoDB');
     } catch (error) {
-        throw error;
+        console.error('MongoDB connection error:', error);
+        process.exit(1); 
     }
 };
 
 mongoose.connection.on('disconnected', () => {
     console.log('MongoDB disconnected!');
+});
+
+// Health check endpoint for Render
+app.get('/health', (req, res) => {
+    res.status(200).send('OK');
 });
 
 // Middleware to pass Socket.IO clients
@@ -74,8 +84,6 @@ app.use("/api", postRoute);
 app.use("/api", userProfileRoute);
 app.use("/api", getUserProfileRoute);
 
-
-
 // Error handling middleware
 app.use((err, req, res, next) => {
     const errStatus = err.status || 500;
@@ -92,8 +100,6 @@ app.use((err, req, res, next) => {
 // Socket.IO Connection
 io.on('connection', (socket) => {
     console.log('New client connected:', socket.id);
-
-    // Send the assigned ID to the client
     socket.emit('clientId', { clientId: socket.id });
 
     socket.on('disconnect', () => {
@@ -106,8 +112,11 @@ io.on('connection', (socket) => {
 });
 
 // Start server
-httpServer.listen(5000, () => {
-    connect();
-    console.log('Connected to server');
-    console.log('Socket.IO server is running on port 5000');
+connect().then(() => {
+    httpServer.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+        console.log('Socket.IO server is running');
+    });
+}).catch(err => {
+    console.error('Failed to start server:', err);
 });
