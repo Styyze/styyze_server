@@ -53,14 +53,13 @@ export const createUser = async (req, res, next) => {
     // Save new user to database
     await newUser.save();
     console.log("User created!");
-
-    // Extract `_id` and `username` for UserProfile
+    
+    const joinedAt = newUser.createdAt;    // Extract `_id` and `username` for UserProfile
     const userProfile = new UserProfile({
       id: newUser._id,
       username: newUser.username, 
-      name: newUser.name, 
-
-
+      name: newUser.name,
+      joinedAt:joinedAt
     });
 
     // Save userProfile to database
