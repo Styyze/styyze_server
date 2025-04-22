@@ -1,5 +1,7 @@
 import WaitList from '../models/WaitList.js'
 import User from '../models/Users.js';
+import UserProfile from "../models/UserProfile.js"; 
+
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -37,27 +39,45 @@ export const register= async (req,res,next)=>{
 }
 
 // Create User
-export const createUser= async (req,res,next)=>{
-  try{
-    const salt=bcrypt.genSaltSync(10)
-    const hash=bcrypt.hashSync(req.body.password,salt)
-const newUser= new User({
-  ...req.body,
-  password:hash,})
-  
-await newUser.save()
-res.status(200).send(newUser)
-console.log("user created!")
-  }catch (err) {
-    if (err.code === 11000) { 
-      const field = Object.keys(err.keyPattern)[0]; 
+
+export const createUser = async (req, res, next) => {
+  try {
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(req.body.password, salt);
+
+    const newUser = new User({
+      ...req.body,
+      password: hash,
+    });
+
+    // Save new user to database
+    await newUser.save();
+    console.log("User created!");
+
+    // Extract `_id` and `username` for UserProfile
+    const userProfile = new UserProfile({
+      id: newUser._id,
+      username: newUser.username, 
+      name: newUser.name, 
+
+
+    });
+
+    // Save userProfile to database
+    await userProfile.save();
+    console.log("User profile created!");
+
+    res.status(200).send(newUser);
+  } catch (err) {
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyPattern)[0];
       res.status(400).send(`The ${field} already exists!`);
     } else {
-      res.status(500).send('Internal server error');
+      res.status(500).send("Internal server error");
     }
     console.log(err);
   }
-}
+};
 
 //Login
 
