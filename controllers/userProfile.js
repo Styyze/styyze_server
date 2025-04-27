@@ -1,4 +1,4 @@
-// controllers/post.js
+import mongoose from "mongoose";
 import UserProfile from '../models/UserProfile.js';
 import User from '../models/Users.js'
 
@@ -48,7 +48,7 @@ const user = await User.findById(id);
     }
 };
 
-//Get all profile
+//Get a user profile
 export const getUserProfile = async (req, res, next) => {
     try {
         const { userId } = req.params; 
@@ -68,5 +68,62 @@ export const getUserProfile = async (req, res, next) => {
             message: "There was an error processing your request",
             error: err.message,
         });
+    }
+};
+
+export const updateUserProfile = async (req, res, next) => {
+    const { userId } = req.body; 
+    const authenticatedUserId = req.user.id; 
+
+    try {
+        // Authorization check
+        if (userId !== authenticatedUserId) {
+            console.log("Unauthorized to update this profile." );
+            return res.status(403).json({ 
+                success: false, 
+                message: "Unauthorized to update this profile." 
+            });
+        }
+
+        // Validate userId format
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Invalid userId format." 
+            });
+        }
+
+        // Input validation with Joi
+        const { error } = validateUpdateInput(req.body);
+        if (error) {
+            return res.status(400).json({ 
+                success: false, 
+                message: error.details[0].message 
+            });
+        }
+
+        // Perform the update
+        const updatedUser = await UserProfile.findByIdAndUpdate(
+            userId, 
+            { $set: req.body }, 
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "User profile not found." 
+            });
+        }
+
+        res.status(200).json({ 
+            success: true, 
+            message: "User profile updated successfully.", 
+            data: updatedUser 
+        });
+
+    } catch (err) {
+        console.error("Error updating user profile:", err); 
+        next(err); 
     }
 };

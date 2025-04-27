@@ -12,6 +12,8 @@ import postRoute from './routes/posts.js';
 import usersRoute from './routes/users.js';
 import userProfileRoute from './routes/userProfile.js';
 import getUserProfileRoute from './routes/getUserProfile.js';
+import updateUserProfileRoute from './routes/updateUserProfile.js';
+
 
 dotenv.config();
 
@@ -27,7 +29,7 @@ const io = new Server(httpServer, {
             'https://styyze.vercel.app',
             'https://styyze-server.onrender.com',
         ],
-        methods: ["GET", "POST"],
+        methods: ["GET", "POST","PATCH","PUT","DELETE"],
         credentials: true 
     }
 });
@@ -69,7 +71,7 @@ app.use(cors({
         'https://styyze.vercel.app',
         'https://styyze-server.onrender.com'
     ],
-    methods: ["GET", "POST", "DELETE", "PUT"]
+    methods: ["GET", "POST", "DELETE", "PUT", "PATCH"]
 }));
 app.use(express.json());
 app.use(cookieParser());
@@ -83,6 +85,7 @@ app.use("/api", usersRoute);
 app.use("/api", postRoute);
 app.use("/api", userProfileRoute);
 app.use("/api", getUserProfileRoute);
+app.use("/api", updateUserProfileRoute);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -109,7 +109,7 @@ export const UserLogin = async (req, res, next) => {
     const token = jwt.sign({
       id: user._id,
       username: user.username 
-    }, process.env.JWT);
+    }, process.env.JWT_SECRET);
 
     // Exclude sensitive details from the response
     const { password, isAdmin, ...otherDetails } = user._doc;
