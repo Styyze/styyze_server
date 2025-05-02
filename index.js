@@ -30,6 +30,8 @@ const io = new Server(httpServer, {
             'http://localhost:3000',
             'https://styyze.vercel.app',
             'https://styyze-server.onrender.com',
+            "https://live-stream-dy6l.onrender.com"
+
         ],
         methods: ["GET", "POST","PATCH","PUT","DELETE"],
         credentials: true 
@@ -71,7 +73,8 @@ app.use(cors({
         'http://localhost:3000',
         'http://localhost:5173',
         'https://styyze.vercel.app',
-        'https://styyze-server.onrender.com'
+        'https://styyze-server.onrender.com',
+        "https://live-stream-dy6l.onrender.com"
     ],
     methods: ["GET", "POST", "DELETE", "PUT", "PATCH"]
 }));
