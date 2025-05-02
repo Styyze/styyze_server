@@ -13,6 +13,8 @@ import usersRoute from './routes/users.js';
 import userProfileRoute from './routes/userProfile.js';
 import getUserProfileRoute from './routes/getUserProfile.js';
 import updateUserProfileRoute from './routes/updateUserProfile.js';
+import likeRoute from './routes/like.js';
+import unLikeRoute from './routes/unLike.js';
 
 
 dotenv.config();
@@ -86,6 +88,8 @@ app.use("/api", postRoute);
 app.use("/api", userProfileRoute);
 app.use("/api", getUserProfileRoute);
 app.use("/api", updateUserProfileRoute);
+app.use("/api", likeRoute);
+app.use("/api", unLikeRoute);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -103,16 +107,39 @@ app.use((err, req, res, next) => {
 // Socket.IO Connection
 io.on('connection', (socket) => {
     console.log('New client connected:', socket.id);
+
+    // Send client ID on connection
     socket.emit('clientId', { clientId: socket.id });
 
+    // Handle WebRTC offer
+    socket.on('offer', (data) => {
+        console.log(`Offer received from ${socket.id}`);
+        socket.broadcast.emit('offer', data); 
+    });
+
+    // Handle WebRTC answer
+    socket.on('answer', (data) => {
+        console.log(`Answer received from ${socket.id}`);
+        socket.broadcast.emit('answer', data); 
+    });
+
+    // Handle ICE candidates
+    socket.on('ice-candidate', (data) => {
+        console.log(`ICE Candidate received from ${socket.id}`);
+        socket.broadcast.emit('ice-candidate', data); 
+    });
+
+    // Handle disconnections
     socket.on('disconnect', () => {
         console.log('Client disconnected:', socket.id);
     });
 
+    // Handle errors
     socket.on('error', (error) => {
         console.error('Socket.IO error:', error);
     });
 });
+
 
 // Start server
 connect().then(() => {

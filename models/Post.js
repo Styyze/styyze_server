@@ -27,6 +27,8 @@ const PostSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    likeCount: { type: Number, default: 0 }, 
+    repostCount: { type: Number, default: 0 }
 });
 
 const Post = mongoose.model('Post', PostSchema);
