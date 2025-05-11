@@ -1,6 +1,6 @@
 import express from 'express'
 
-import {getUser, } from '../controller.js'
+import {getUsers, } from '../controllers/users.js';
 
 import {searchPost} from '../controllers/searchPost.js'
 
@@ -9,7 +9,7 @@ import {searchPost} from '../controllers/searchPost.js'
 const router = express.Router();
 
 
-router.post('/users',getUsers)
+router.get('/users',getUsers)
 
 
 
