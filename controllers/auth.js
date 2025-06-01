@@ -101,15 +101,15 @@ res.cookie("access_token",token, {
 export const UserLogin = async (req, res, next) => {
   try {
     const user = await User.findOne({ username: req.body.username });
-    if (!user) return res.send("No user found");
+    if (!user) return res.status(404).json({error:"No user found"});
 
     const isPasswordCorrect = await bcrypt.compare(req.body.password, user.password);
-    if (!isPasswordCorrect) return res.send( "Wrong password or username");
+    if (!isPasswordCorrect) return res.status(401).json( {error:"Wrong password or username"});
 
     const token = jwt.sign({
       id: user._id,
       username: user.username 
-    }, process.env.JWT_SECRET);
+    }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
     // Exclude sensitive details from the response
     const { password, isAdmin, ...otherDetails } = user._doc;
@@ -119,9 +119,10 @@ export const UserLogin = async (req, res, next) => {
       httpOnly: true
     }).status(200).json({
       details: { ...otherDetails, username: user.username }, 
-      isAdmin
+      isAdmin,
+      access_token: token
     });
-    
+
     console.log('hello login');
   } catch (err) {
     next(err);

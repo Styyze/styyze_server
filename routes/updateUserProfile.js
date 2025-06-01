@@ -5,7 +5,7 @@ import {authenticate} from '../controllers/authmiddleware.js';
 
 const router = express.Router();
 
-router.patch('/updateUserProfile',authenticate, updateUserProfile)
+router.patch('/updateUserProfile', authenticate, updateUserProfile)
 
 
 export default router;

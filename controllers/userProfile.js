@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import UserProfile from '../models/UserProfile.js';
 import User from '../models/Users.js'
+import { validateUpdateInput } from './validateUpdateInput.js';
 
 export const CreateUserProfile = async (req, res, next) => {
     try {
@@ -101,10 +102,10 @@ export const updateUserProfile = async (req, res, next) => {
                 message: error.details[0].message 
             });
         }
-
+        
         // Perform the update
-        const updatedUser = await UserProfile.findByIdAndUpdate(
-            userId, 
+        const updatedUser = await UserProfile.findOneAndUpdate(
+            {id: userId}, 
             { $set: req.body }, 
             { new: true }
         );
