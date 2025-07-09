@@ -79,11 +79,12 @@ const io = new Server(httpServer, {
     cors: {
         origin: [
             'http://localhost:3000',
+            'http://localhost:5173',
             'https://styyze.vercel.app',
             'https://styyze-server.onrender.com',
             "https://live-stream-dy6l.onrender.com"
         ],
-        methods: ["GET", "POST"],
+        methods: ["GET", "POST","PUT","DELETE", "PATCH"],
         credentials: true
     }
 });
