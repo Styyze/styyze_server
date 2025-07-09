@@ -40,9 +40,11 @@ app.use(cors({  credentials: true,
 origin: [
     'http://localhost:3000', 
     'http://localhost:5173', 
+    'https://styyze.vercel.app',
     'https://styyze-server.onrender.com'
 ],
- methods:["GET","POST","DELETE","PUT","PATCH"]}))
+ methods:["GET","POST","DELETE","PUT","PATCH"]
+}))
 
 app.use(express.json())
 app.use(cookieParser())
