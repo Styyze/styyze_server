@@ -92,7 +92,6 @@ const io = new Server(httpServer, {
 });
 
 // Middleware
-app.use(cors({ origin: '*', credentials: true }));
 
 io.on('connection', (socket) => {
     console.log('New client connected:', socket.id);
