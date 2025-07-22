@@ -12,7 +12,10 @@ const PostSchema = new mongoose.Schema({
             trim: true,
             default: '',
         },
-        file: [String],
+        file: [{
+            url: {type:String},
+            img_id:{type: String}
+        }],
         location: {
             type: String,
             required: false,
