@@ -156,9 +156,6 @@ export const refreshToken = async (req, res) => {
 
 // /controllers/authController.js
 
-import jwt from 'jsonwebtoken';
-import User from '../models/Users.js';
-
 export const reloadSession = async (req, res) => {
   try {
     const token = req.cookies.access_token;
