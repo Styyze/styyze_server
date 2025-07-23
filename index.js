@@ -36,19 +36,19 @@ mongoose.connection.on("disconnected", ()=>{
 
 
 
-app.use(cors({  credentials: true, 
+app.use(cors({   
 origin: [
     'http://localhost:3000', 
     'http://localhost:5173', 
     'https://styyze.vercel.app',
     'https://styyze-server.onrender.com'
 ],
+credentials: true,
  methods:["GET","POST","DELETE","PUT","PATCH"]
 }))
 
 app.use(express.json())
 app.use(cookieParser())
-app.options('*', cors());
 
 app.use("/api/", loginRoute);
 app.use("/api/", registerRoute);

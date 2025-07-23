@@ -90,8 +90,10 @@ const token= jwt.sign({id:user._id, isAdmin: user.isAdmin}, process.env.JWT)
 
 const {password, isAdmin, ...otherDetails}=user._doc
 res.cookie("access_token",token, {
-  httpOnly:true
-}).status(200).json({details:{...otherDetails},isAdmin})
+httpOnly:true,
+SameSite:"strict",
+maxAge:3600
+    }).status(200).json({details:{...otherDetails},isAdmin})
 
   }catch(err){
     next(err)
@@ -116,7 +118,12 @@ export const UserLogin = async (req, res, next) => {
 
     // Send the token as a cookie to the client
     res.cookie("access_token", token, {
-      httpOnly: true
+      httpOnly: true,
+      sameSite: "None",
+      secure:true,
+      maxAge: 3600000,
+      path: '/'
+
     }).status(200).json({
       details: { ...otherDetails, username: user.username }, 
       isAdmin,
@@ -146,7 +153,12 @@ export const refreshToken = async (req, res) => {
       );
 
       res.cookie('access_token', newToken, {
-        httpOnly: true
+        HttpOnly: true,
+        sameSite:"Lax",
+        secure:false,
+        maxAge:3600000,
+        path: '/'
+
       }).status(200).json({ success: true });
     });
   } catch (err) {
@@ -159,6 +171,7 @@ export const refreshToken = async (req, res) => {
 export const reloadSession = async (req, res) => {
   try {
     const token = req.cookies.access_token;
+    console.log(token)
     if (!token) {
       return res.status(401).json({ error: 'Access token missing' });
     }
