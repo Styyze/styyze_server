@@ -3,26 +3,24 @@ import Post from '../models/Post.js';
 
 export const post = async (req, res, next) => {
     try {
-        const { userId, postData, clientId } = req.body;
+        const {userId,caption,location, media,tags, clientId}= req.body;
     console.log(clientId);
 
-    const { caption, file, location, tags } = postData;
 
     const newPost = new Post({
         userId,
-        postData: {
-            caption,
-            file,
-            location,
-            tags
-        }
+        media,
+        caption,
+        location,
+        tags
+        
     });
         await newPost.save();
 
         // Notify the client about the new post
         req.io.to(clientId).emit('new post', newPost);
 
-        console.log(`New post created by userId: ${req.body.userId}`);
+        console.log(`New post created by userId: ${userId}`);
         console.log(`Socket.IO client: ${Array.from(req.io.sockets.sockets.keys())}`);
 
         res.status(200).send({
@@ -31,7 +29,7 @@ export const post = async (req, res, next) => {
             data: newPost
         });
     } catch (err) {
-        console.log(err);
+        console.error("Error saving post", err);
         res.status(500).send({
             success: false,
             message: 'There was an error processing your request',

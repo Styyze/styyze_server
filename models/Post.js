@@ -1,21 +1,25 @@
 import mongoose from 'mongoose';
 
+const mediaSchema= new mongoose.Schema({
+    mediaUrl:{type: String, required: false},
+    mediaId: {type:String, required: false}
+});
 const PostSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
     },
-    postData: {
+    
         caption: {
             type: String,
             trim: true,
             default: '',
         },
-        file: [{
-            url: {type:String},
-            img_id:{type: String}
-        }],
+        media: {
+            type: [mediaSchema]
+
+        },
         location: {
             type: String,
             required: false,
@@ -25,7 +29,7 @@ const PostSchema = new mongoose.Schema({
             type: String,
             trim: true,
         }],
-    },
+    
     createdAt: {
         type: Date,
         default: Date.now,

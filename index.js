@@ -50,14 +50,6 @@ credentials: true,
 app.use(express.json())
 app.use(cookieParser())
 
-app.use("/api/", loginRoute);
-app.use("/api/", registerRoute);
-app.use("/api/", usersRoute);
-app.use("/api/", getUserProfileRoute);
-app.use("/api/", userProfileRoute);
-app.use("/api/", likeRoute);
-app.use("/api/", postRoute);
-app.use("/api/", updateUserProfileRoute);
 
 app.use((err,req,res,next)=>{
 const errStatus= err.status || 500 
@@ -91,10 +83,26 @@ const io = new Server(httpServer, {
     }
 });
 
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
+app.use("/api/", loginRoute);
+app.use("/api/", registerRoute);
+app.use("/api/", usersRoute);
+app.use("/api/", getUserProfileRoute);
+app.use("/api/", userProfileRoute);
+app.use("/api/", likeRoute);
+app.use("/api/", postRoute);
+app.use("/api/", updateUserProfileRoute);
+
+
 // Middleware
 
 io.on('connection', (socket) => {
     console.log('New client connected:', socket.id);
+      socket.emit('client-id', socket.id);
 
     // Handle WebRTC offer
     socket.on('offer', (data) => {
