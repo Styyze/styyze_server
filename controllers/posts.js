@@ -47,3 +47,22 @@ export const getPosts= async (req,res,next)=>{
             next(err)
         }
 }
+
+export const getPostById=(req, res, next)=>{
+    const {id}=req.params;
+    try{
+        const post= Post.findById(id);
+        if(!post){
+            res.status(400).json({
+                success: false,
+                message: "No post found"
+            })
+        }
+        res.status(200).json({
+            success: true,
+            data: post
+        })
+    }catch(err){
+        next(err)
+    }
+}
