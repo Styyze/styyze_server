@@ -8,6 +8,6 @@ const router = express.Router();
 
 router.post('/posts', post)
 router.get('/posts/all',getPosts)
-router.get('/posts/:id', getPostById)
+router.get('/posts/:postId', getPostById)
 
 export default router
