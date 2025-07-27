@@ -1,5 +1,6 @@
 // controllers/post.js
 import Post from '../models/Post.js';
+import mongoose from 'mongoose';
 
 export const post = async (req, res, next) => {
     try {
@@ -48,12 +49,19 @@ export const getPosts= async (req,res,next)=>{
         }
 }
 
-export const getPostById=(req, res, next)=>{
-    const {id}=req.params;
+export const getPostById= async(req, res, next)=>{
+    const {postId}=req.params;
+    console.log(postId)
+    if (!mongoose.Types.ObjectId.isValid(postId)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid post ID"
+    });
+  }
     try{
-        const post= Post.findById(id);
+        const post= await Post.findById(postId);
         if(!post){
-            res.status(400).json({
+           return res.status(400).json({
                 success: false,
                 message: "No post found"
             })
@@ -63,6 +71,11 @@ export const getPostById=(req, res, next)=>{
             data: post
         })
     }catch(err){
-        next(err)
-    }
+       console.error("Error saving post", err);
+       console.error(err.stack || err)
+        res.status(500).send({
+            success: false,
+            message: 'There was an error processing your request',
+            error: err.message,
+        });    }
 }
