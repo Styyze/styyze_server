@@ -1,35 +1,58 @@
-import Like from '../models/Like.js';
 import Post from '../models/Post.js';
+import mongoose from 'mongoose';
+import User from '../models/Users.js'
 
 export const like = async (req, res, next) => {
-
     const { postId, userId } = req.body;
+    console.log("userId:",userId);
 
+    // Validate input
     if (!postId || !userId) {
         return res.status(400).send({ message: "Missing postId or userId." });
     }
 
     try {
-        const likeExists = await Like.findOne({ userId, postId });
+        // Validate ObjectIds
+        if (!mongoose.Types.ObjectId.isValid(postId) || !mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).send({ message: "Invalid postId or userId." });
+        }
+
+        // Check if user exists
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).send({ message: "User not found." });
+        }
+
+        // Find the post
+        const post = await Post.findById(postId);
+        if (!post) {
+            return res.status(404).send({ message: "Post not found." });
+        }
+
+        // Check if user already liked the post
+const likeExists = Array.isArray(post.likes) && post.likes.some(like => like.userId.toString() === userId);
 
         if (likeExists) {
-            // If already liked, unlike the post
-            await Like.deleteOne({ userId, postId });
-            await Post.findByIdAndUpdate(postId, { $inc: { likeCount: -1 } });
+            // Unlike: Remove userId from likes array and decrement likeCount
+            await Post.findByIdAndUpdate(postId, {
+                $pull: { likes: { userId } },
+                $inc: { likeCount: -1 }
+            });
             res.status(200).send({ message: "Post unliked." });
         } else {
-            // If not liked, like the post
-            await Like.create({ userId, postId });
-            await Post.findByIdAndUpdate(postId, { $inc: { likeCount: 1 } });
+            // Like: Add userId to likes array and increment likeCount
+            await Post.findByIdAndUpdate(postId, {
+                $push: { likes: { userId } },
+                $inc: { likeCount: 1 }
+            });
             res.status(200).send({ message: "Post liked." });
-            console.log("Liked!")
+            console.log("Liked!");
         }
     } catch (error) {
         console.error("Error toggling like:", error);
-        res.status(500).send({ message: "Internal server error." });
+        res.status(500).send({ message: "Internal server error.", error: error.message });
     }
-
-}
+};
 
 export const getAllLike = async (req, res, next) => {
 

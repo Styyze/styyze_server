@@ -1,6 +1,8 @@
 // controllers/post.js
 import Post from '../models/Post.js';
 import mongoose from 'mongoose';
+import User from '../models/Users.js'
+
 
 export const post = async (req, res, next) => {
     try {
@@ -78,4 +80,37 @@ export const getPostById= async(req, res, next)=>{
             message: 'There was an error processing your request',
             error: err.message,
         });    }
+}
+
+export const getUsersWhoLikedPost = async (req, res)=> {
+    const { postId } = req.params;
+
+    try {
+        const post = await Post.findById(postId)
+            .populate({
+                path: 'likes.userId', 
+                populate: {
+                    path: 'userProfile', 
+                    select: 'avatarUrl' 
+                },
+                select: 'username email userProfile' 
+            })
+            .select('likes'); 
+
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
+        }
+
+        // Format the response
+        const usersWhoLiked = post.likes.map(like => ({
+            userId: like.userId._id,
+            username: like.userId.username,
+            email: like.userId.email,
+            avatarUrl: like.userId.userProfile ? like.userId.userProfile.avatarUrl : null
+        }));
+
+        res.status(200).json({ data: usersWhoLiked });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
 }

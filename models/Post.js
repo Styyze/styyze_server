@@ -35,7 +35,20 @@ const PostSchema = new mongoose.Schema({
         default: Date.now,
     },
     likeCount: { type: Number, default: 0 }, 
-    repostCount: { type: Number, default: 0 }
+    repostCount: { type: Number, default: 0 },
+    likes:[{
+        userId:{type:mongoose.Schema.Types.ObjectId,
+            ref:'User',
+            required:true
+        }
+    }],
+    reposts:[{
+        userId:{type:mongoose.Schema.Types.ObjectId,
+            ref:'User',
+            required:true
+        }
+    }]
+
 });
 
 const Post = mongoose.model('Post', PostSchema);

@@ -19,6 +19,11 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  userProfile: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'UserProfile', 
+        required: true 
+    },
   createdAt: { 
     type: Date,
     default: Date.now, 
@@ -28,4 +33,4 @@ const UserSchema = new mongoose.Schema({
 
 UserSchema.index({ email: 1 }, { unique: true });
 
-export default mongoose.model("Users", UserSchema);
+export default mongoose.model("User", UserSchema);
