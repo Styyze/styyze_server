@@ -22,7 +22,7 @@ const UserSchema = new mongoose.Schema({
   userProfile: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'UserProfile', 
-        required: true 
+        required: false 
     },
   createdAt: { 
     type: Date,

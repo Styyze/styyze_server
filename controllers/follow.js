@@ -1,36 +1,71 @@
-// controllers/post.js
-import Follow from '../models/Follow.js';
+import UserProfile from '../models/UserProfile.js';
 import User from '../models/Users.js';
 
-export const follow = async (req, res, next) => {
-   const {userId, targetUserId} = req.body; 
-      console.log(userId);  
-      console.log(targetUserId);  
+export const toggleFollow = async (req, res) => {
+  const { targetUserProfileId, followerUserId } = req.body;
+  console.log('targetId', targetUserProfileId)
 
-        try {
-            const existingFollow = await Follow.findOne({ follower: userId, following: targetUserId });
-            if (!existingFollow) {
-              const newFollow = new Follow({ follower: userId, following: targetUserId });
-              await newFollow.save();
-              console.log("User followed successfully.");
-              res.status(200).send({data:1})
-            } else {
-              console.log("User is already following the target user.");
-              res.status(200).send({data:1})
-            }
-          } catch (error) {
-            console.error("Error following user:", error);
-          }
+  if (!targetUserProfileId || !followerUserId) {
+    return res.status(400).json({ message: "Missing required fields." });
+  }
+
+  try {
+    const profile = await UserProfile.findOne({id:targetUserProfileId});
+    if (!profile) {
+      return res.status(404).json({ message: "Target profile not found." });
+    }
+
+    const isFollowing = profile.followers.some(
+      f => f.userId.toString() === followerUserId
+    );
+
+    if (isFollowing) {
+      // Unfollow logic
+      await UserProfile.findOneAndUpdate({id:targetUserProfileId}, {
+        $pull: { followers: { userId: followerUserId } },
+        $inc: { followersCount: -1 }
+      });
+      return res.status(200).json({ message: "Unfollowed successfully." });
+    } else {
+      // Follow logic
+      await UserProfile.findOneAndUpdate({id:targetUserProfileId}, {
+        $addToSet: { followers: { userId: followerUserId } },
+        $inc: { followersCount: 1 }
+      });
+      return res.status(200).json({ message: "Followed successfully." });
+    }
+  } catch (error) {
+    console.error("Toggle follow error:", error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
 };
 
-export const unfollowUser = async (req, res) => {
-    const {userId, targetUserId} = req.body; 
 
-    try {
-      await Follow.findOneAndDelete({ follower: userId, following: targetUserId });
-      res.status(200).send({data:0});
-      console.log("User unfollowed successfully.");
-    } catch (error) {
-      console.error("Error unfollowing user:");
-    }
-  };
+export const getFollowersInfo = async (req, res) => {
+  const { profileId } = req.params; 
+  console.log(profileId);
+
+  try {
+    const userProfile = await UserProfile.findOne({id:profileId})
+      .populate({
+        path: 'followers.userId',
+        select: 'username name userProfile',
+        populate: {
+          path: 'userProfile',
+          select: 'avatarUrl',
+        }
+      });
+
+    const followers = userProfile.followers.map(follower => ({
+      userId: follower.userId._id,
+      username: follower.userId.username,
+      name: follower.userId.name,
+      avatarUrl: follower.userId.userProfile?.avatarUrl || null
+    }));
+
+    res.status(200).json({ data: followers });
+  } catch (error) {
+    console.error('Error fetching follower info:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};

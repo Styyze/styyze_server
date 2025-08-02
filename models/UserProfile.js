@@ -17,6 +17,7 @@ const UserProfileSchema = new mongoose.Schema({
         type: String,
         
       },
+
   website: {
     type: String,
    
@@ -34,7 +35,21 @@ const UserProfileSchema = new mongoose.Schema({
   },
   joinedAt: {
     type: String,
-  }
+  },
+  followersCount: { type: Number, default: 0 }, 
+    followingCount: { type: Number, default: 0 },
+    followers:[{
+        userId:{type:mongoose.Schema.Types.ObjectId,
+            ref:'User',
+            required:true
+        }
+    }],
+  following:[{
+    userId:{type:mongoose.Schema.Types.ObjectId,
+             ref: 'User',
+             required:true
+    }
+  }]
  
 });
 

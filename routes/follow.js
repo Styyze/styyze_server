@@ -1,16 +1,13 @@
 import express from 'express'
 
-import {follow} from '../controllers/follow.js'
-import {unfollowUser} from '../controllers/follow.js'
-
-
+import {toggleFollow, getFollowersInfo} from '../controllers/follow.js'
 
 
 const router = express.Router();
 
 
-router.post('/follow', follow)
-router.post('/unfollow',unfollowUser)
+router.post('/follow', toggleFollow)
+router.get('/get_followers/:profileId',getFollowersInfo)
 
 
 export default router
