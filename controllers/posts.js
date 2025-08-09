@@ -51,28 +51,23 @@ export const getPosts= async (req,res,next)=>{
         }
 }
 
-export const getPostById= async(req, res, next)=>{
-    const {postId}=req.params;
-    console.log(postId)
-    if (!mongoose.Types.ObjectId.isValid(postId)) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid post ID"
-    });
-  }
-    try{
-        const post= await Post.findById(postId);
-        if(!post){
-           return res.status(400).json({
+export const getUserPosts= async(req, res, next)=>{
+    const {userId}=req.params;
+ try {
+        const posts = await Post.find({ userId: userId }); // Fetch all matching documents
+
+        if (posts.length === 0) {
+            return res.status(404).json({
                 success: false,
-                message: "No post found"
-            })
-        }
-        res.status(200).json({
+                message: "No posts found for this user"
+            });
+            }
+            res.status(200).json({
             success: true,
-            data: post
-        })
-    }catch(err){
+            data: posts
+        });
+        
+        }catch(err){
        console.error("Error saving post", err);
        console.error(err.stack || err)
         res.status(500).send({
