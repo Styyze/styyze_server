@@ -54,12 +54,12 @@ export const getPosts= async (req,res,next)=>{
 export const getUserPosts= async(req, res, next)=>{
     const {userId}=req.params;
  try {
-        const posts = await Post.find({ userId: userId }); // Fetch all matching documents
+        const posts = await Post.find({ userId: userId }); 
 
         if (posts.length === 0) {
             return res.status(404).json({
-                success: false,
-                message: "No posts found for this user"
+                success: true,
+                data: {}
             });
             }
             res.status(200).json({
@@ -109,3 +109,75 @@ export const getUsersWhoLikedPost = async (req, res)=> {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 }
+
+export const updatePost = async (req, res, next) => {
+    try {
+        const { postId } = req.params;
+        const { caption, location, tags, media, clientId } = req.body;
+
+        // Build update object dynamically to avoid overwriting unintended fields
+        const updateFields = {};
+        if (caption !== undefined) updateFields.caption = caption;
+        if (location !== undefined) updateFields.location = location;
+        if (tags !== undefined) updateFields.tags = tags;
+        if (media !== undefined) updateFields.media = media;
+
+        const updatedPost = await Post.findByIdAndUpdate(
+            postId,
+            { $set: updateFields },
+            { new: true }
+        );
+
+        if (!updatedPost) {
+            return res.status(404).send({
+                success: false,
+                message: "Post not found",
+            });
+        }
+
+ req.io.to(clientId).emit('post updated', updatedPost);
+ 
+        console.log(`Post updated: ${postId}`);
+
+        res.status(200).send({
+            success: true,
+            message: "Post successfully updated!",
+            data: updatedPost,
+        });
+    } catch (err) {
+        console.error("Error updating post", err);
+        res.status(500).send({
+            success: false,
+            message: 'There was an error updating the post',
+            error: err.message,
+        });
+    }
+};
+
+// Get Post by _id
+export const getPostById = async (req, res, next) => {
+    const { postId } = req.params;
+
+    try {
+        const post = await Post.findById(postId);
+
+        if (!post) {
+            return res.status(404).json({
+                success: false,
+                message: "Post not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: post
+        });
+    } catch (err) {
+        console.error("Error fetching post by ID", err);
+        res.status(500).json({
+            success: false,
+            message: "There was an error retrieving the post",
+            error: err.message
+        });
+    }
+};
