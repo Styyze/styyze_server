@@ -1,10 +1,12 @@
 import mongoose from 'mongoose';
 
 const UserProfileSchema = new mongoose.Schema({
-    id: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true,
-      },
+    userId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'User',
+  required: true,
+  unique: true
+         },
     name: {
         type: String,
         required: true,
@@ -51,7 +53,8 @@ const UserProfileSchema = new mongoose.Schema({
     }
   }]
  
-});
+}, { timestamps: true });
 
+UserProfileSchema.index({ userId: 1 });
 
 export default mongoose.model("UserProfile", UserProfileSchema);

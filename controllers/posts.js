@@ -42,17 +42,27 @@ export const post = async (req, res, next) => {
 };
 
 //Get all posts
-export const getPosts= async (req,res,next)=>{
-    try{
-        const posts= await Post.find()
-        res.status(200).json(posts)
-        }catch(err){
-            next(err)
-        }
-}
 
+export const getPosts = async (req, res) => {
+  try {
+    const posts = await Post.find()
+      .sort({ createdAt: -1 }) 
+      .populate({
+        path:'userProfile',
+        select:' username name avatarUrl'
+      }); 
+
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    res.status(500).json({ message: 'Failed to fetch posts' });
+  }
+};
+
+// Get user posts
 export const getUserPosts= async(req, res, next)=>{
     const {userId}=req.params;
+    console.log("User Id", userId);
  try {
         const posts = await Post.find({ userId: userId }); 
 

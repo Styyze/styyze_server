@@ -30,10 +30,7 @@ const PostSchema = new mongoose.Schema({
             trim: true,
         }],
     
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
+    
     likeCount: { type: Number, default: 0 }, 
     repostCount: { type: Number, default: 0 },
     likes:[{
@@ -49,7 +46,17 @@ const PostSchema = new mongoose.Schema({
         }
     }]
 
+},  { timestamps: true });
+
+PostSchema.virtual('userProfile', {
+  ref: 'UserProfile',
+  localField: 'userId',
+  foreignField: 'userId',
+  justOne: true,
 });
+
+PostSchema.set('toObject', { virtuals: true });
+PostSchema.set('toJSON', { virtuals: true });
 
 const Post = mongoose.model('Post', PostSchema);
 
