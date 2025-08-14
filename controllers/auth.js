@@ -56,7 +56,7 @@ export const createUser = async (req, res, next) => {
     
     const joinedAt = newUser.createdAt;    
     const userProfile = new UserProfile({
-      id: newUser._id,
+      userId: newUser._id,
       username: newUser.username, 
       name: newUser.name,
       joinedAt:joinedAt

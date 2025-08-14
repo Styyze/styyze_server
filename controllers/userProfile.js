@@ -5,7 +5,7 @@ import { validateUpdateInput } from './validateUpdateInput.js';
 
 export const CreateUserProfile = async (req, res, next) => {
     try {
-        const { id, name,
+        const { userId, name,
             username,
             bio,
             avatarUrl,
@@ -14,14 +14,14 @@ export const CreateUserProfile = async (req, res, next) => {
             website,
 
         } = req.body;
-const user = await User.findById(id); 
+const user = await User.findById(userId); 
     if (!user) {
         return res.status(404).json({ message: "User not found" });
     }
     const joinedAt = user.createdAt; 
 
     const newUserProfile = new UserProfile({
-        id,
+        userId,
         name,
         username,
         bio,
@@ -39,6 +39,7 @@ const user = await User.findById(id);
             message: "User profile successfully created!",
             data: newUserProfile
         });
+        console.log('success');
     } catch (err) {
         console.log(err);
         res.status(500).send({

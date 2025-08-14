@@ -44,20 +44,26 @@ export const post = async (req, res, next) => {
 //Get all posts
 
 export const getPosts = async (req, res) => {
+  console.log("post server");
   try {
     const posts = await Post.find()
-      .sort({ createdAt: -1 }) 
+      .sort({ createdAt: -1 })
       .populate({
-        path:'userProfile',
-        select:' username name avatarUrl'
-      }); 
+        path: 'userProfile',
+        select: 'username name avatarUrl',
+        model: 'UserProfile' // explicitly specify the model
+      })
+      .exec();
 
-    res.status(200).json(posts);
+    res.status(200).json({ data: posts });
+    console.log(posts);
   } catch (error) {
     console.error('Error fetching posts:', error);
     res.status(500).json({ message: 'Failed to fetch posts' });
   }
 };
+
+
 
 // Get user posts
 export const getUserPosts= async(req, res, next)=>{
@@ -91,6 +97,10 @@ export const getUsersWhoLikedPost = async (req, res)=> {
     const { postId } = req.params;
 
     try {
+        const post_user = await Post.findOne().lean();
+const profile = await UserProfile.findOne({ userId: post_user.userId });
+console.log(profile); // Should not be null
+
         const post = await Post.findById(postId)
             .populate({
                 path: 'likes.userId', 
