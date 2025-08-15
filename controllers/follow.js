@@ -28,7 +28,7 @@ export const toggleFollow = async (req, res) => {
       return res.status(200).json({ message: "Unfollowed successfully." });
     } else {
       // Follow logic
-      await UserProfile.findOneAndUpdate({id:targetUserProfileId}, {
+      await UserProfile.findOneAndUpdate({userId:targetUserProfileId}, {
         $addToSet: { followers: { userId: followerUserId } },
         $inc: { followersCount: 1 }
       });
