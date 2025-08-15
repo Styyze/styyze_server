@@ -21,7 +21,7 @@ export const toggleFollow = async (req, res) => {
 
     if (isFollowing) {
       // Unfollow logic
-      await UserProfile.findOneAndUpdate({id:targetUserProfileId}, {
+      await UserProfile.findOneAndUpdate({userId:targetUserProfileId}, {
         $pull: { followers: { userId: followerUserId } },
         $inc: { followersCount: -1 }
       });
