@@ -10,7 +10,7 @@ export const toggleFollow = async (req, res) => {
   }
 
   try {
-    const profile = await UserProfile.findOne({id:targetUserProfileId});
+    const profile = await UserProfile.findOne({userId:targetUserProfileId});
     if (!profile) {
       return res.status(404).json({ message: "Target profile not found." });
     }
