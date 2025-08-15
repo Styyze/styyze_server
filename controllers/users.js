@@ -27,10 +27,11 @@ export const getUser= async (req,res,next)=>{
             res.status(500).json(err)
         }
 }
-export const getUsers= async (req,res,next)=>{
+export const getAllUsers= async (req,res,next)=>{
+    console.log("get all users")
     try{
         const users= await User.find()
-        res.status(200).json(users)
+        res.status(200).json({data:users})
         }catch(err){
             next(err)
         }

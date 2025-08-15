@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.post('/posts', post);
 router.get('/posts/all',getPosts);
-router.get('/posts/:userId', getUserPosts);
+router.get('/posts_by_user/:userId', getUserPosts);
 router.patch('/post_update/:postId', updatePost);
 router.get('/post_likes/:postId', getUsersWhoLikedPost);
 router.get('/get_post/:postId', getPostById);

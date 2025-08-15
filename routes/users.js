@@ -1,6 +1,6 @@
 import express from 'express'
 
-import {getUsers} from '../controllers/users.js'
+import {getAllUsers} from '../controllers/users.js'
 
 
 
@@ -8,7 +8,7 @@ import {getUsers} from '../controllers/users.js'
 const router = express.Router();
 
 
-router.post('/users',getUsers)
+router.get('/all_users',getAllUsers)
 
 
 

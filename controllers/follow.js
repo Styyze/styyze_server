@@ -46,7 +46,7 @@ export const getFollowersInfo = async (req, res) => {
   console.log(profileId);
 
   try {
-    const userProfile = await UserProfile.findOne({id:profileId})
+    const userProfile = await UserProfile.findOne({userId:profileId})
       .populate({
         path: 'followers.userId',
         select: 'username name userProfile',

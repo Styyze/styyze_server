@@ -51,7 +51,7 @@ export const getPosts = async (req, res) => {
       .populate({
         path: 'userProfile',
         select: 'username name avatarUrl',
-        model: 'UserProfile' // explicitly specify the model
+        model: 'UserProfile' 
       })
       .exec();
 
@@ -97,9 +97,7 @@ export const getUsersWhoLikedPost = async (req, res)=> {
     const { postId } = req.params;
 
     try {
-        const post_user = await Post.findOne().lean();
-const profile = await UserProfile.findOne({ userId: post_user.userId });
-console.log(profile); // Should not be null
+        
 
         const post = await Post.findById(postId)
             .populate({
