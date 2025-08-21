@@ -3,6 +3,8 @@ import Post from '../models/Post.js';
 import mongoose from 'mongoose';
 import User from '../models/Users.js'
 
+import Comment from '../models/PostComments.js'
+
 
 export const post = async (req, res, next) => {
     try {
@@ -41,29 +43,89 @@ export const post = async (req, res, next) => {
     }
 };
 
-//Get all posts
 
-export const getPosts = async (req, res) => {
-  console.log("post server");
+// Utility: Build nested comment tree per post
+const buildCommentTrees = (comments) => {
+  const trees = new Map(); // postId => [top-level comments]
+  const commentMap = new Map();
+
+  // Initialize map
+  comments.forEach(comment => {
+    comment.replies = [];
+    commentMap.set(comment._id.toString(), comment);
+  });
+
+  // Build trees
+  comments.forEach(comment => {
+    const postId = comment.postId.toString();
+    if (comment.parentCommentId) {
+      const parent = commentMap.get(comment.parentCommentId.toString());
+      if (parent) {
+        parent.replies.push(comment);
+      }
+    } else {
+      if (!trees.has(postId)) trees.set(postId, []);
+      trees.get(postId).push(comment);
+    }
+  });
+
+  return trees;
+};
+
+// Controller: Get all posts with nested comments
+export const getPostsWithComments = async (req, res) => {
   try {
+    // Fetch all posts with user and profile info
     const posts = await Post.find()
       .sort({ createdAt: -1 })
       .populate({
-        path: 'userProfile',
-        select: 'username name avatarUrl',
-        model: 'UserProfile' 
+        path: 'userId',
+        select: 'name userProfile',
+        model: 'User',
+        populate: {
+          path: 'userProfile',
+          model: 'UserProfile',
+          select: 'avatarUrl username'
+        }
       })
-      .exec();
+      .populate({
+        path: 'userProfile', 
+        model: 'UserProfile',
+        select: 'avatarUrl name username'
+      })
+      .lean();
 
-    res.status(200).json({ data: posts });
-    console.log(posts);
+    const postIds = posts.map(post => post._id);
+
+    // Fetch all comments for these posts
+    const allComments = await Comment.find({ postId: { $in: postIds } })
+      .populate({
+        path: 'userId',
+        select: 'username userProfile',
+        model: 'User',
+        populate: {
+          path: 'userProfile',
+          model: 'UserProfile',
+          select: 'avatarUrl name'
+        }
+      })
+      .lean();
+
+    // Build comment trees
+    const commentTrees = buildCommentTrees(allComments);
+
+    // Attach comments to posts
+    const enrichedPosts = posts.map(post => ({
+      ...post,
+      comments: commentTrees.get(post._id.toString()) || []
+    }));
+
+    res.status(200).json({ data: enrichedPosts });
   } catch (error) {
-    console.error('Error fetching posts:', error);
+    console.error('Error fetching posts with comments:', error);
     res.status(500).json({ message: 'Failed to fetch posts' });
   }
 };
-
-
 
 // Get user posts
 export const getUserPosts= async(req, res, next)=>{

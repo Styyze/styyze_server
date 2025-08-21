@@ -13,6 +13,7 @@ import getUserProfileRoute from './routes/getUserProfile.js'
 import updateUserProfileRoute from "./routes/updateUserProfile.js";
 import postRoute from './routes/posts.js'
 import userProfileRoute from './routes/userProfile.js'
+import commentRoute from './routes/comments.js'
 import likeRoute from './routes/like.js'
 import followersRoute from './routes/follow.js'
 
@@ -96,6 +97,7 @@ app.use("/api/", getUserProfileRoute);
 app.use("/api/", userProfileRoute);
 app.use("/api/", likeRoute);
 app.use("/api/", postRoute);
+app.use("/api/", commentRoute);
 app.use("/api/", followersRoute);
 app.use("/api/", updateUserProfileRoute);
 
