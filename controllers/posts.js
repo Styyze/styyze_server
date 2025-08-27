@@ -75,9 +75,15 @@ const buildCommentTrees = (comments) => {
 // Controller: Get all posts with nested comments
 export const getPostsWithComments = async (req, res) => {
   try {
-    // Fetch all posts with user and profile info
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Fetch paginated posts with user and profile info
     const posts = await Post.find()
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .populate({
         path: 'userId',
         select: 'name userProfile',
@@ -89,7 +95,7 @@ export const getPostsWithComments = async (req, res) => {
         }
       })
       .populate({
-        path: 'userProfile', 
+        path: 'userProfile',
         model: 'UserProfile',
         select: 'avatarUrl name username'
       })
@@ -120,12 +126,97 @@ export const getPostsWithComments = async (req, res) => {
       comments: commentTrees.get(post._id.toString()) || []
     }));
 
-    res.status(200).json({ data: enrichedPosts });
+    // Optional: include pagination metadata
+    const totalPosts = await Post.countDocuments();
+    const totalPages = Math.ceil(totalPosts / limit);
+
+    res.status(200).json({
+      data: enrichedPosts,
+      meta: {
+        page,
+        limit,
+        totalPosts,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
+    });
   } catch (error) {
     console.error('Error fetching posts with comments:', error);
     res.status(500).json({ message: 'Failed to fetch posts' });
   }
 };
+
+// get post by iD
+export const getPostById = async (req, res, next) => {
+  const { postId } = req.params;
+
+  try {
+    // Fetch the post with user and profile info
+    const post = await Post.findById(postId)
+      .populate({
+        path: 'userId',
+        select: 'name userProfile',
+        model: 'User',
+        populate: {
+          path: 'userProfile',
+          model: 'UserProfile',
+          select: 'avatarUrl username'
+        }
+      })
+      .populate({
+        path: 'userProfile',
+        model: 'UserProfile',
+        select: 'avatarUrl name username'
+      })
+      .lean();
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found"
+      });
+    }
+
+    // Fetch all comments for this post
+    const comments = await Comment.find({ postId })
+      .populate({
+        path: 'userId',
+        select: 'username userProfile',
+        model: 'User',
+        populate: {
+          path: 'userProfile',
+          model: 'UserProfile',
+          select: 'avatarUrl name'
+        }
+      })
+      .lean();
+
+    // Build nested comment tree
+    const commentTrees = buildCommentTrees(comments);
+    const nestedComments = commentTrees.get(postId.toString()) || [];
+
+    // Attach comments to post
+    const enrichedPost = {
+      ...post,
+      comments: nestedComments
+    };
+
+    res.status(200).json({
+      success: true,
+      data: enrichedPost
+    });
+  } catch (err) {
+    console.error("Error fetching post by ID with comments", err);
+    res.status(500).json({
+      success: false,
+      message: "There was an error retrieving the post",
+      error: err.message
+    });
+  }
+};
+
+
 
 // Get user posts
 export const getUserPosts= async(req, res, next)=>{
@@ -235,29 +326,3 @@ export const updatePost = async (req, res, next) => {
 };
 
 // Get Post by _id
-export const getPostById = async (req, res, next) => {
-    const { postId } = req.params;
-
-    try {
-        const post = await Post.findById(postId);
-
-        if (!post) {
-            return res.status(404).json({
-                success: false,
-                message: "Post not found"
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            data: post
-        });
-    } catch (err) {
-        console.error("Error fetching post by ID", err);
-        res.status(500).json({
-            success: false,
-            message: "There was an error retrieving the post",
-            error: err.message
-        });
-    }
-};
