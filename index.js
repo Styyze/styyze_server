@@ -4,18 +4,19 @@ import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 import cors from 'cors';
 
-import cookieParser from 'cookie-parser'
-import mongoose from 'mongoose'
-import loginRoute from './routes/auth.js'
-import registerRoute from './routes/auth.js'
-import usersRoute from './routes/users.js'
-import getUserProfileRoute from './routes/getUserProfile.js'
+import cookieParser from 'cookie-parser';
+import mongoose from 'mongoose';
+import loginRoute from './routes/auth.js';
+import registerRoute from './routes/auth.js';
+import usersRoute from './routes/users.js';
+import getUserProfileRoute from './routes/getUserProfile.js';
 import updateUserProfileRoute from "./routes/updateUserProfile.js";
 import postRoute from './routes/posts.js'
-import userProfileRoute from './routes/userProfile.js'
-import commentRoute from './routes/comments.js'
-import likeRoute from './routes/like.js'
-import followersRoute from './routes/follow.js'
+import postVideoRoute from './routes/getVideos.js';
+import userProfileRoute from './routes/userProfile.js';
+import commentRoute from './routes/comments.js';
+import likeRoute from './routes/like.js';
+import followersRoute from './routes/follow.js';
 
 
 
@@ -100,6 +101,7 @@ app.use("/api/", postRoute);
 app.use("/api/", commentRoute);
 app.use("/api/", followersRoute);
 app.use("/api/", updateUserProfileRoute);
+app.use("/api/", postVideoRoute);
 
 
 // Middleware
