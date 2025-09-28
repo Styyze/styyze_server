@@ -1,14 +1,14 @@
 import express from 'express'
 
 
-import {searchPost} from '../controllers/searchPost.js';
+import {post_search} from '../controllers/search_post.js';
 
 
 
 const router = express.Router();
 
 
-router.get('/search', searchPost)
+router.get('/post/search', post_search)
 
 
 

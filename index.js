@@ -1,3 +1,4 @@
+
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
@@ -17,6 +18,7 @@ import userProfileRoute from './routes/userProfile.js';
 import commentRoute from './routes/comments.js';
 import likeRoute from './routes/like.js';
 import followersRoute from './routes/follow.js';
+import searchPostRoute from './routes/searchPost.js';
 
 
 
@@ -102,6 +104,7 @@ app.use("/api/", commentRoute);
 app.use("/api/", followersRoute);
 app.use("/api/", updateUserProfileRoute);
 app.use("/api/", postVideoRoute);
+app.use("/api/", searchPostRoute );
 
 
 // Middleware

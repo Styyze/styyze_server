@@ -11,7 +11,7 @@ export const searchPost= async (req, res) => {
 
         } 
         
-    const results = await Post.find({ content: { $regex: word, $options: 'i' } }); 
+    const results = await Post.find({ caption: { $regex: word, $options: 'i' } }); 
     res.status(200).send({ success: true, results });
  }catch (err) {
          res.status(500).send({ success: false, message: 'Internal server error', error: err.message });
