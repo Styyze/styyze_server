@@ -19,7 +19,7 @@ import commentRoute from './routes/comments.js';
 import likeRoute from './routes/like.js';
 import followersRoute from './routes/follow.js';
 import searchPostRoute from './routes/searchPost.js';
-
+import searchUserRoute from './routes/search_user.js';
 
 
 const app= express();
@@ -105,6 +105,9 @@ app.use("/api/", followersRoute);
 app.use("/api/", updateUserProfileRoute);
 app.use("/api/", postVideoRoute);
 app.use("/api/", searchPostRoute );
+app.use("/api/", searchUserRoute );
+
+
 
 
 // Middleware
