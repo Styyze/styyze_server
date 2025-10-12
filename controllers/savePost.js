@@ -18,7 +18,7 @@ export const savePost = async (req, res, next) => {
       await SavePost.deleteOne({ _id: existingSave._id });
       return res.status(200).send({
         success: true,
-        data: "Post removed from your bookmark",
+        message: "Post removed from your bookmark",
       });
     }
 
@@ -32,7 +32,7 @@ export const savePost = async (req, res, next) => {
 
     return res.status(200).send({
       success: true,
-       data: "Post added to your bookmark",
+       message: "Post added to your bookmark",
     });
   } catch (err) {
     console.error('Error saving/removing post:', err);

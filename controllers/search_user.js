@@ -25,7 +25,7 @@ export const user_search = async (req, res) => {
           id: user._id,
           username: user.username,
           name: user.name,
-          avatarUrl: user.avatarUrl
+          avatarUrl: user.avatarUrl || ''
         },
       };
     });

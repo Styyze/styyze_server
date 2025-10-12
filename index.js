@@ -1,10 +1,10 @@
-
+import jwt from 'jsonwebtoken';
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 import cors from 'cors';
-
+import Message from './models/Message.js'; 
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 import loginRoute from './routes/auth.js';
@@ -21,6 +21,7 @@ import followersRoute from './routes/follow.js';
 import searchPostRoute from './routes/searchPost.js';
 import searchUserRoute from './routes/search_user.js';
 import savePostRoute from './routes/savePost.js';
+import messageRoute from './routes/message.js';
 
 
 const app= express();
@@ -108,13 +109,47 @@ app.use("/api/", postVideoRoute);
 app.use("/api/", searchPostRoute );
 app.use("/api/", searchUserRoute );
 app.use("/api/", savePostRoute);
+app.use("/api/", messageRoute);
 
 
 
 
 // Middleware
 
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+  if (!token) return next(new Error('Authentication error: No token provided'));
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.userId = decoded.id;
+    next();
+  } catch (err) {
+    next(new Error('Authentication error: Invalid token'));
+  }
+});
+
 io.on('connection', (socket) => {
+    const userId = socket.userId;
+  socket.join(userId.toString());
+  console.log(`User ${userId} connected and joined room ${userId}`);
+
+  socket.on('send_message', async (data) => {
+    const { receiverId, content } = data;
+
+    const newMessage = new Message({
+      senderId: userId,
+      receiverId,
+      content
+    });
+    await newMessage.save();
+
+    io.to(receiverId.toString()).emit('new_message', {
+      senderId: userId,
+      content,
+      timestamp: newMessage.timestamp
+    });
+  });
     console.log('New client connected:', socket.id);
       socket.emit('client-id', socket.id);
 
