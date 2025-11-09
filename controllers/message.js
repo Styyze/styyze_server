@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 export const sendMessage = async (req, res) => {
   try {
     const { senderId, receiverId, content } = req.body;
+    console.log("senderId", senderId);
 
     const newMessage = new Message({ senderId, receiverId, content });
     await newMessage.save();
@@ -21,6 +22,7 @@ export const sendMessage = async (req, res) => {
       message: 'Message sent successfully',
       data: newMessage
     });
+    console.log('Message sent successfully');
   } catch (err) {
     console.error('Message error:', err);
     res.status(500).json({

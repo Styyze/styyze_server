@@ -125,7 +125,7 @@ export const UserLogin = async (req, res, next) => {
       path: '/'
 
     }).status(200).json({
-      details: { ...otherDetails, username: user.username }, 
+      details: { ...otherDetails, username: user.username, _id: user._id}, 
       isAdmin,
       access_token: token
     });
