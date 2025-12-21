@@ -109,7 +109,7 @@ app.use("/api/", postVideoRoute);
 app.use("/api/", searchPostRoute );
 app.use("/api/", searchUserRoute );
 app.use("/api/", savePostRoute);
-app.use("/api/", messageRoute);
+app.use("/api/message", messageRoute);
 
 
 

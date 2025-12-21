@@ -1,10 +1,14 @@
 import express from 'express'
 
-import {sendMessage} from '../controllers/message.js'
+import {getUserMessagesById} from '../controllers/getMessagesById.js';
+import { sendMessage, getOrCreateConversation } from '../controllers/message.js';
 
 const router = express.Router();
 
 
-router.post('/message', sendMessage);
+router.post('/', sendMessage);
+router.get('/user/:conversationId', getUserMessagesById);
+router.post('/user/conversation',getOrCreateConversation);
+
 
 export default router
