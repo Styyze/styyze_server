@@ -50,7 +50,6 @@ export const getUserChatList = async (req, res, next) => {
     }
 
     const receiverIds = chatList.map(msg => msg.receiverId);
-    console.log('receiverIds:', receiverIds);
 
     const receiverProfiles = await UserProfile.find({
       userId: { $in: receiverIds }
@@ -58,7 +57,6 @@ export const getUserChatList = async (req, res, next) => {
       .select('userId username name avatarUrl bio website coverPhotoUrl location')
       .lean();
 
-    console.log('receiverProfiles:', receiverProfiles);
 
     const enrichedChatList = chatList.map(msg => {
       const profile = receiverProfiles.find(
@@ -67,7 +65,6 @@ export const getUserChatList = async (req, res, next) => {
       return { ...msg, receiverProfile: profile || null };
     });
 
-    console.log('enrichedChatList:', enrichedChatList);
 
     return res.status(200).json({
       success: true,
