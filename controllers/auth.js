@@ -65,8 +65,10 @@ export const createUser = async (req, res, next) => {
     // Save userProfile to database
     await userProfile.save();
     console.log("User profile created!");
-
-    res.status(200).send(newUser);
+newUser.userProfile = userProfile._id;
+    await newUser.save();
+const { password, ...safeUser } = newUser.toObject();
+res.status(200).send(safeUser);
   } catch (err) {
     if (err.code === 11000) {
       const field = Object.keys(err.keyPattern)[0];

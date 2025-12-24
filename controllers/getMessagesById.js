@@ -1,7 +1,8 @@
 import Message from '../models/Message.js';
+import UserProfile from '../models/UserProfile.js';
+
 export const getUserMessagesById = async (req, res, next) => {
   const { conversationId} = req.params;
-  console.log('cons Id:', conversationId)
   try {
     if (!conversationId)
     {
@@ -13,7 +14,7 @@ console.log("collection name:", Message.collection.name);
     if (messages.length === 0){
         return res.status(404).json({success: false, message: "No message for this user"});
     }
-    return res.status(200).json({success: true, data:messages});
+    return res.status(200).json({success: true, data:messagesu});
   }catch(err){
 console.log(' error:', err);
 return res.status(500).json({
@@ -22,3 +23,64 @@ return res.status(500).json({
 })
   }
 }
+
+export const getUserChatList = async (req, res, next) => {
+  const { senderId } = req.params;
+  console.log('senderId:', senderId);
+
+  try {
+    if (!senderId) {
+      return res.status(400).json({
+        success: false,
+        message: "SenderId is Required"
+      });
+    }
+
+    const chatList = await Message.find({ senderId })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    console.log('chatList:', chatList);
+
+    if (chatList.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No Chat for this user"
+      });
+    }
+
+    const receiverIds = chatList.map(msg => msg.receiverId);
+    console.log('receiverIds:', receiverIds);
+
+    const receiverProfiles = await UserProfile.find({
+      userId: { $in: receiverIds }
+    })
+      .select('userId username name avatarUrl bio website coverPhotoUrl location')
+      .lean();
+
+    console.log('receiverProfiles:', receiverProfiles);
+
+    const enrichedChatList = chatList.map(msg => {
+      const profile = receiverProfiles.find(
+        p => String(p.userId) === String(msg.receiverId)
+      );
+      return { ...msg, receiverProfile: profile || null };
+    });
+
+    console.log('enrichedChatList:', enrichedChatList);
+
+    return res.status(200).json({
+      success: true,
+      data: enrichedChatList
+    });
+
+  } catch (err) {
+    console.log('error:', err);
+    return res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
+};
+
+
