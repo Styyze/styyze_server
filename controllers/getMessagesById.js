@@ -24,47 +24,62 @@ return res.status(500).json({
   }
 }
 
-export const getUserChatList = async (req, res, next) => {
-  const { senderId } = req.params;
-  console.log('senderId:', senderId);
+export const getUserChatList = async (req, res) => {
+  const { userId: currentUserId } = req.params;
+  console.log('currentUserId:', currentUserId);
 
   try {
-    if (!senderId) {
+    if (!currentUserId) {
       return res.status(400).json({
         success: false,
-        message: "SenderId is Required"
+        message: "UserId is required"
       });
     }
 
-    const chatList = await Message.find({ senderId })
+    // Fetch messages where user is sender OR receiver
+    const chatList = await Message.find({
+      $or: [
+        { senderId: currentUserId },
+        { receiverId: currentUserId }
+      ]
+    })
       .sort({ createdAt: -1 })
       .lean();
-
-    console.log('chatList:', chatList);
 
     if (chatList.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "No Chat for this user"
+        message: "No chats found for this user"
       });
     }
 
-    const receiverIds = chatList.map(msg => msg.receiverId);
+    const profileUserIds = chatList.map(msg =>
+      String(msg.senderId) === String(currentUserId)
+        ? msg.receiverId
+        : msg.senderId
+    );
 
-    const receiverProfiles = await UserProfile.find({
-      userId: { $in: receiverIds }
+    const profiles = await UserProfile.find({
+      userId: { $in: profileUserIds }
     })
       .select('userId username name avatarUrl bio website coverPhotoUrl location')
       .lean();
 
-
     const enrichedChatList = chatList.map(msg => {
-      const profile = receiverProfiles.find(
-        p => String(p.userId) === String(msg.receiverId)
-      );
-      return { ...msg, receiverProfile: profile || null };
-    });
+      const isSender = String(msg.senderId) === String(currentUserId);
 
+      const otherUserId = isSender ? msg.receiverId : msg.senderId;
+
+      const otherUserProfile = profiles.find(
+        p => String(p.userId) === String(otherUserId)
+      );
+
+      return {
+        ...msg,
+        senderProfile: isSender ? null : otherUserProfile || null,
+        receiverProfile: isSender ? otherUserProfile || null : null
+      };
+    });
 
     return res.status(200).json({
       success: true,
@@ -72,12 +87,10 @@ export const getUserChatList = async (req, res, next) => {
     });
 
   } catch (err) {
-    console.log('error:', err);
+    console.error('error:', err);
     return res.status(500).json({
       success: false,
       message: err.message
     });
   }
 };
-
-

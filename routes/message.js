@@ -9,7 +9,7 @@ const router = express.Router();
 router.post('/', sendMessage);
 router.get('/user/:conversationId', getUserMessagesById);
 router.post('/user/conversation',getOrCreateConversation);
-router.get('/chat/chatList/:senderId', getUserChatList);
+router.get('/chat/chatList/:userId', getUserChatList);
 
 
 export default router
