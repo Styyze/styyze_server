@@ -26,48 +26,65 @@ return res.status(500).json({
 
 export const getUserChatList = async (req, res) => {
   const { userId: currentUserId } = req.params;
-  console.log('currentUserId:', currentUserId);
 
   try {
     if (!currentUserId) {
       return res.status(400).json({
         success: false,
-        message: "UserId is required"
+        message: "UserId is required",
       });
     }
 
-    // Fetch messages where user is sender OR receiver
-    const chatList = await Message.find({
+    //  Get all messages involving the user (latest first)
+    const messages = await Message.find({
       $or: [
         { senderId: currentUserId },
-        { receiverId: currentUserId }
-      ]
+        { receiverId: currentUserId },
+      ],
     })
       .sort({ createdAt: -1 })
       .lean();
 
-    if (chatList.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No chats found for this user"
+    if (!messages.length) {
+      return res.status(200).json({
+        success: true,
+        data: [],
       });
     }
 
-    const profileUserIds = chatList.map(msg =>
+    //  Keep ONLY the last message per other user
+    const lastMessagesMap = new Map();
+
+    for (const msg of messages) {
+      const otherUserId =
+        String(msg.senderId) === String(currentUserId)
+          ? String(msg.receiverId)
+          : String(msg.senderId);
+
+      // Since messages are sorted DESC, first one is the latest
+      if (!lastMessagesMap.has(otherUserId)) {
+        lastMessagesMap.set(otherUserId, msg);
+      }
+    }
+
+    const lastMessages = Array.from(lastMessagesMap.values());
+
+    // Fetch profiles of the other users
+    const otherUserIds = lastMessages.map(msg =>
       String(msg.senderId) === String(currentUserId)
         ? msg.receiverId
         : msg.senderId
     );
 
     const profiles = await UserProfile.find({
-      userId: { $in: profileUserIds }
+      userId: { $in: otherUserIds },
     })
-      .select('userId username name avatarUrl bio website coverPhotoUrl location')
+      .select("userId username name avatarUrl bio website coverPhotoUrl location")
       .lean();
 
-    const enrichedChatList = chatList.map(msg => {
+    // Attach sender / receiver info properly
+    const enrichedChatList = lastMessages.map(msg => {
       const isSender = String(msg.senderId) === String(currentUserId);
-
       const otherUserId = isSender ? msg.receiverId : msg.senderId;
 
       const otherUserProfile = profiles.find(
@@ -75,22 +92,27 @@ export const getUserChatList = async (req, res) => {
       );
 
       return {
-        ...msg,
+        _id: msg._id,
+        lastMessage: msg.content,        // 👈 change to your field name
+        createdAt: msg.createdAt,
+        senderId: msg.senderId,
+        receiverId: msg.receiverId,
+
         senderProfile: isSender ? null : otherUserProfile || null,
-        receiverProfile: isSender ? otherUserProfile || null : null
+        receiverProfile: isSender ? otherUserProfile || null : null,
       };
     });
 
     return res.status(200).json({
       success: true,
-      data: enrichedChatList
+      data: enrichedChatList,
     });
-
   } catch (err) {
-    console.error('error:', err);
+    console.error("error:", err);
     return res.status(500).json({
       success: false,
-      message: err.message
+      message: err.message,
     });
   }
 };
+
