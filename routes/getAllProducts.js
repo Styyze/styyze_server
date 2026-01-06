@@ -1,12 +1,10 @@
 import express from 'express'
 
-import {createProduct } from '../controllers/product.js'
 
 import {getAllProducts} from '../controllers/getProducts.js';
 
 const router = express.Router();
 
-router.post('/', createProduct ); 
 router.get("/getAllProducts", getAllProducts);
 
 

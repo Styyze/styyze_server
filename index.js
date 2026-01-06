@@ -23,7 +23,8 @@ import searchUserRoute from './routes/search_user.js';
 import savePostRoute from './routes/savePost.js';
 import messageRoute from './routes/message.js';
 import orderRoute from './routes/order.js';
-import productRoute from './routes/product.js'
+import productRoute from './routes/product.js';
+import allProductsRoute from './routes/getAllProducts.js';
 
 const app= express();
 dotenv.config();
@@ -113,6 +114,7 @@ app.use("/api/", savePostRoute);
 app.use("/api/message", messageRoute);
 app.use("/api/product", productRoute);
 app.use("/api/product", orderRoute);
+app.use("/api/products", allProductsRoute);
 
 
 
