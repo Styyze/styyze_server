@@ -24,6 +24,15 @@ const UserSchema = new mongoose.Schema({
         ref: 'UserProfile', 
         required: false 
     },
+    verified: {
+    type: Boolean,
+    default: false
+  },
+    role: {
+    type: String,
+    enum: ['buyer', 'seller', 'admin'],
+    default: 'buyer'
+  },
   createdAt: { 
     type: Date,
     default: Date.now, 

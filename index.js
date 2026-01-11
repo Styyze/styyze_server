@@ -25,6 +25,7 @@ import messageRoute from './routes/message.js';
 import orderRoute from './routes/order.js';
 import productRoute from './routes/product.js';
 import allProductsRoute from './routes/getAllProducts.js';
+import verifyRoute from './routes/verifyUser.js';
 
 const app= express();
 dotenv.config();
@@ -115,6 +116,7 @@ app.use("/api/message", messageRoute);
 app.use("/api/product", productRoute);
 app.use("/api/product", orderRoute);
 app.use("/api/products", allProductsRoute);
+app.use("/api/user", verifyRoute);
 
 
 
