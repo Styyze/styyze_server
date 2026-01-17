@@ -1,18 +1,36 @@
 import User from '../models/Users.js';
-import Seller from '../models/Sellers.js';
+import SellerVerification from '../models/verifySellers.js';
 
-export const verifyUser = async (req, res) => {
+export const approveSeller = async (req, res) => {
   try {
-    const { userId } = req.params; 
+    const { userId } = req.params;
+    //const adminId = req.user.id;
+    const adminId="6947b82dba67ae6dd22db7df";
 
-    if (!userId) {
-      return res.status(400).json({
+    //  Find verification record
+    const verification = await SellerVerification.findOne({ userId });
+
+    if (!verification) {
+      return res.status(404).json({
         success: false,
-        message: 'User ID is required'
+        message: 'Seller verification not found'
       });
     }
 
-    // Fetch user
+    if (verification.status === 'approved') {
+      return res.status(400).json({
+        success: false,
+        message: 'Seller already approved'
+      });
+    }
+
+    // 2️⃣ Update verification record
+    verification.status = 'approved';
+    verification.reviewedBy = adminId;
+    verification.reviewedAt = new Date();
+    await verification.save();
+
+    // 3️⃣ Update user
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
@@ -21,47 +39,20 @@ export const verifyUser = async (req, res) => {
       });
     }
 
-    // 2️⃣ Set user as verified
     user.verified = true;
+    user.role = 'seller';
     await user.save();
-
-    // 3️⃣ Create or update Seller entry
-    // Check if a Seller document already exists
-    let seller = await Seller.findOne({ userId: user._id });
-
-    if (!seller) {
-      // Create new Seller document
-      seller = new Seller({
-        userId: user._id,
-        status: 'approved',
-        verifiedAt: new Date()
-      });
-      await seller.save();
-    } else {
-      // Update existing Seller document
-      seller.status = 'approved';
-      seller.verifiedAt = new Date();
-      await seller.save();
-    }
 
     return res.status(200).json({
       success: true,
-      message: `User ${user.username} has been verified and added as seller`,
-      data: {
-        user: { id: user._id, verified: user.verified },
-        seller: {
-          id: seller._id,
-          status: seller.status,
-          verifiedAt: seller.verifiedAt
-        }
-      }
+      message: 'Seller approved successfully'
     });
 
   } catch (error) {
-    console.error('User verification error:', error);
+    console.error(error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to verify user'
+      message: 'Failed to approve seller'
     });
   }
 };
