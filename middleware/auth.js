@@ -3,31 +3,20 @@ import jwt from 'jsonwebtoken';
 import User from '../models/Users.js';
 
 export const protect = async (req, res, next) => {
-  let token;
+  const token = req.cookies?.access_token;   
 
-  // Authorization: Bearer <token>
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    token = req.headers.authorization.split(' ')[1];
-  }
-console.log("loggedIn user Token:", token);
   if (!token) {
-    return res.status(401).json({
-      message: 'Not authenticated'
-    });
+    return res.status(401).json({ message: "Not authenticated" });
   }
+
+  console.log("Logged-in user token:", token);
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     const user = await User.findById(decoded.id).select('-password');
-
     if (!user) {
-      return res.status(401).json({
-        message: 'User no longer exists'
-      });
+      return res.status(401).json({ message: "User no longer exists" });
     }
 
     req.user = {
@@ -35,10 +24,8 @@ console.log("loggedIn user Token:", token);
       role: user.role
     };
 
-    next(); // move to next middleware
+    next(); 
   } catch (error) {
-    return res.status(401).json({
-      message: 'Invalid token'
-    });
+    return res.status(401).json({ message: "Invalid token" });
   }
 };
