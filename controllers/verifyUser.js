@@ -13,14 +13,14 @@ export const approveSeller = async (req, res) => {
     if (!verification) {
       return res.status(404).json({
         success: false,
-        message: 'Seller verification not found'
+        data: 'Seller verification not found'
       });
     }
 
     if (verification.status === 'approved') {
       return res.status(400).json({
         success: false,
-        message: 'Seller already approved'
+        data: 'Seller already approved'
       });
     }
 
@@ -35,7 +35,7 @@ export const approveSeller = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        data: 'User not found'
       });
     }
 
@@ -45,14 +45,14 @@ export const approveSeller = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Seller approved successfully'
+      data: 'Seller approved successfully'
     });
 
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to approve seller'
+      data: 'Failed to approve seller'
     });
   }
 };
