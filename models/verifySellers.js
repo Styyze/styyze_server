@@ -50,12 +50,12 @@ const sellerVerificationSchema = new mongoose.Schema(
       type: String
     },
 
-    reviewedBy: {
+    approvedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User' 
     },
 
-    reviewedAt: {
+    approvedAt: {
       type: Date
     }
   },
