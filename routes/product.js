@@ -9,7 +9,7 @@ import {getAllProducts} from '../controllers/getProducts.js';
 
 const router = express.Router();
 
-router.post('/',  createProduct ); 
+router.post('/', protect, authorize('seller'), createProduct ); 
 router.get("/getAllProducts", getAllProducts);
 
 
