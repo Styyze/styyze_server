@@ -25,9 +25,9 @@ export const createProduct = async (req, res) => {
   });
 }
 
-// 1️⃣ Get logged-in user ID from auth middleware
+// Get logged-in user ID from auth middleware
     const userId = req.user.id;
-    // 2️⃣ Fetch user from DB
+    //Fetch user from DB
     const user = await User.findById(userId);
 
     if (!user) {
@@ -37,7 +37,7 @@ export const createProduct = async (req, res) => {
       });
     }
 
-    // 3️⃣ Verify seller status
+    // Verify seller status
     if (!user.verified) {
       return res.status(403).json({
         success: false,
@@ -45,7 +45,7 @@ export const createProduct = async (req, res) => {
       });
     }
 
-    // 4️⃣ Validate required fields
+    // Validate required fields
     if (!title || !description || price === undefined) {
       return res.status(400).json({
         success: false,
@@ -53,9 +53,9 @@ export const createProduct = async (req, res) => {
       });
     }
 
-    // 5️⃣ Create product (sellerId is the logged-in user)
+    // Create product (sellerId is the logged-in user)
     const product = new Product({
-      sellerId: user._id,
+      seller: user._id,
       title,
       description,
       price,
@@ -98,10 +98,10 @@ export const getProductById = async (req, res) => {
       });
     }
 
-    // 2️⃣ Fetch product
+    // Fetch product
     const product = await Product.findById(productId)
       .populate({
-        path: 'sellerId',
+        path: 'seller',
         select: 'name email verified role' 
       });
 
@@ -132,39 +132,37 @@ export const getProductById = async (req, res) => {
 
 export const getProductsBySellerId = async (req, res) => {
   try {
-    const { sellerId } = req.params;
-
-    // 1️⃣ Validate sellerId
-    if (!mongoose.Types.ObjectId.isValid(sellerId)) {
+    const { seller } = req.params;
+    // 1Validate sellerId
+    if (!mongoose.Types.ObjectId.isValid(seller)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid seller ID'
       });
     }
 
-    // 2️⃣ Confirm seller exists
-    const seller = await User.findById(sellerId).select('_id verified');
+    // Confirm seller exists
+    const verifiedSeller = await User.findById(seller).select('_id verified');
 
-    if (!seller) {
+    if (!verifiedSeller) {
       return res.status(404).json({
         success: false,
         message: 'Seller not found'
       });
     }
 
-    // Optional: restrict to verified sellers only
-    if (!seller.verified) {
+    //  restrict to verified sellers only
+    if (!verifiedSeller.verified) {
       return res.status(403).json({
         success: false,
         message: 'Seller is not verified'
       });
     }
 
-    // 3️⃣ Fetch products for this seller
-    const products = await Product.find({ sellerId })
+    const products = await Product.find({ seller })
       .sort({ createdAt: -1 })
       .populate({
-        path: 'sellerId',
+        path: 'seller',
         select: 'name email verified'
       });
 

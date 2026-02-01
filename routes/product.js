@@ -12,7 +12,7 @@ const router = express.Router();
 router.post('/', protect, authorize('seller'), createProduct ); 
 router.get("/getAllProducts", getAllProducts);
 router.get("/:productId",getProductById);
-router.get("/ProductBySeller/:sellerId", getProductsBySellerId);
+router.get("/ProductBySeller/:seller", getProductsBySellerId);
 
 
 

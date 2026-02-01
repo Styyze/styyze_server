@@ -11,7 +11,7 @@ const mediaSchema = new mongoose.Schema(
 
 const ProductSchema = new mongoose.Schema(
   {
-    sellerId: {
+    seller: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true
