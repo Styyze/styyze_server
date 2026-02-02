@@ -1,5 +1,6 @@
 import Product from '../models/Product.js';
 import Order from '../models/Order.js';
+import mongoose from 'mongoose';
 
 export const createOrder = async (req, res) => {
   try {
@@ -60,6 +61,75 @@ export const createOrder = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to create order'
+    });
+  }
+};
+
+// get orders by sellerId
+export const getOrdersBySellerId = async (req, res) => {
+  try {
+    const { seller } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(seller)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid sellerId'
+      });
+    }
+
+    const sellerObjectId = new mongoose.Types.ObjectId(seller);
+
+    const orders = await Order.aggregate([
+      // 1️⃣ Only orders containing this seller
+      {
+        $match: {
+          'items.sellerId': sellerObjectId
+        }
+      },
+
+      // 2️⃣ Keep only this seller's items
+      {
+        $addFields: {
+          items: {
+            $filter: {
+              input: '$items',
+              as: 'item',
+              cond: { $eq: ['$$item.sellerId', sellerObjectId] }
+            }
+          }
+        }
+      },
+
+      // 3️⃣ Recalculate totalAmount for this seller
+      {
+        $addFields: {
+          totalAmount: {
+            $sum: {
+              $map: {
+                input: '$items',
+                as: 'item',
+                in: { $multiply: ['$$item.price', '$$item.quantity'] }
+              }
+            }
+          }
+        }
+      },
+
+      // 4️⃣ Sort newest first
+      { $sort: { createdAt: -1 } }
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      count: orders.length,
+      data: orders
+    });
+
+  } catch (error) {
+    console.error('Seller order fetch error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch seller orders'
     });
   }
 };

@@ -1,14 +1,16 @@
 import express from 'express'
 
-import {createOrder } from '../controllers/order.js'
+import {createOrder, getOrdersBySellerId } from '../controllers/order.js'
 
 
 
 const router = express.Router();
 
+
+
 router.post('/order', createOrder ); 
 
-
+router.get("/getOrders/:seller", getOrdersBySellerId);
 
 
 
