@@ -133,3 +133,37 @@ export const getOrdersBySellerId = async (req, res) => {
     });
   }
 };
+
+// get orders by buyerId
+export const getOrdersByBuyerId = async (req, res) => {
+  try {
+    const { buyer } = req.params;
+
+    // 1️⃣ Validate buyerId
+    if (!mongoose.Types.ObjectId.isValid(buyer)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid buyerId'
+      });
+    }
+
+    // 2️⃣ Fetch buyer's orders
+    const orders = await Order.find({
+      buyerId: buyer
+    })
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      count: orders.length,
+      data: orders
+    });
+
+  } catch (error) {
+    console.error('Buyer order fetch error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch buyer orders'
+    });
+  }
+};
