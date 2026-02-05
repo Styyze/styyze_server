@@ -1,6 +1,11 @@
 import express from 'express'
 
-import {createOrder, getOrdersBySellerId, getOrdersByBuyerId } from '../controllers/order.js'
+import {
+    createOrder,
+    getOrdersBySellerId, 
+    getOrdersByBuyerId,
+    checkoutOrder 
+} from '../controllers/order.js'
 
 
 
@@ -12,6 +17,8 @@ router.post('/order', createOrder );
 
 router.get("/getOrders/:seller", getOrdersBySellerId);
 router.get("/buyerOrder/:buyer", getOrdersByBuyerId);
+router.get('/checkout/:orderId', checkoutOrder);
+
 
 
 

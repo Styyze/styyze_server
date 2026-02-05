@@ -2,68 +2,6 @@ import Product from '../models/Product.js';
 import Order from '../models/Order.js';
 import mongoose from 'mongoose';
 
-export const createOrder = async (req, res) => {
-  try {
-    const { buyerId, items } = req.body;
-
-    if (!buyerId || !Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'buyerId and items are required'
-      });
-    }
-
-    let orderItems = [];
-    let totalAmount = 0;
-
-    for (const item of items) {
-      const product = await Product.findById(item.productId);
-
-      if (!product) {
-        return res.status(404).json({
-          success: false,
-          message: `Product not found: ${item.productId}`
-        });
-      }
-
-      const quantity = item.quantity || 1;
-
-      orderItems.push({
-        productId: product._id,
-        title: product.title,
-        price: product.price,
-        quantity,
-        mediaUrl: product.media?.[0]?.mediaUrl,
-        sellerId: product.sellerId
-      });
-
-      totalAmount += product.price * quantity;
-    }
-
-    const order = new Order({
-      buyerId,
-      items: orderItems,
-      totalAmount,
-      currency: 'NGN'
-    });
-
-    const savedOrder = await order.save();
-
-    return res.status(201).json({
-      success: true,
-      message: 'Order created successfully',
-      data: savedOrder
-    });
-
-  } catch (error) {
-    console.error('Create order error:', error);
-
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to create order'
-    });
-  }
-};
 
 // get orders by sellerId
 export const getOrdersBySellerId = async (req, res) => {
@@ -164,6 +102,171 @@ export const getOrdersByBuyerId = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to fetch buyer orders'
+    });
+  }
+};
+
+// Create Order
+
+export const createOrder = async (req, res) => {
+  try {
+    const { buyerId, items } = req.body;
+
+    if (!buyerId || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'buyerId and items are required'
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(buyerId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid buyerId'
+      });
+    }
+
+    let orderItems = [];
+    let totalAmount = 0;
+
+    // calculate price from DB
+    for (const item of items) {
+      const product = await Product.findById(item.productId);
+
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: `Product not found: ${item.productId}`
+        });
+      }
+
+      const quantity =
+        Number.isInteger(item.quantity) && item.quantity > 0
+          ? item.quantity
+          : 1;
+
+      orderItems.push({
+        productId: product._id,
+        title: product.title,
+        price: product.price,
+        quantity,
+        mediaUrl: product.media?.[0]?.mediaUrl,
+        sellerId: product.sellerId
+      });
+
+      totalAmount += product.price * quantity;
+    }
+
+    // ✅ Create order (NOT checkout)
+    const order = new Order({
+      buyerId,
+      items: orderItems,
+      totalAmount,
+      currency: 'NGN',
+      paymentStatus: 'pending',
+      orderStatus: 'processing'
+    });
+
+    const savedOrder = await order.save();
+
+    return res.status(201).json({
+      success: true,
+      message: 'Order created successfully',
+      data: {
+        orderId: savedOrder._id
+      }
+    });
+
+  } catch (error) {
+    console.error('Create order error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to create order'
+    });
+  }
+};
+// get order for checkout
+
+export const checkoutOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid orderId'
+      });
+    }
+
+    // 1️⃣ Fetch existing order
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    // Prevent checkout of already paid orders
+    if (order.paymentStatus === 'paid') {
+      return res.status(400).json({
+        success: false,
+        message: 'Order already paid'
+      });
+    }
+
+    let recalculatedItems = [];
+    let recalculatedTotal = 0;
+
+    // 2️⃣ Re-validate items against DB
+    for (const item of order.items) {
+      const product = await Product.findById(item.productId);
+
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: `Product not found: ${item.productId}`
+        });
+      }
+
+      recalculatedItems.push({
+        productId: product._id,
+        title: product.title,
+        price: product.price, 
+        quantity: item.quantity,
+        mediaUrl: product.media?.[0]?.mediaUrl,
+        sellerId: product.seller
+      });
+
+      recalculatedTotal += product.price * item.quantity;
+    }
+
+    // 3️⃣ Update order with fresh values
+    order.items = recalculatedItems;
+    order.totalAmount = recalculatedTotal;
+
+    await order.save();
+
+    // 4️⃣ Send final checkout summary
+    return res.status(200).json({
+      success: true,
+      message: 'Checkout ready',
+      data: {
+        orderId: order._id,
+        buyerId: order.buyerId,
+        items: order.items,
+        totalAmount: order.totalAmount,
+        currency: order.currency,
+        paymentStatus: order.paymentStatus
+      }
+    });
+
+  } catch (error) {
+    console.error('Checkout error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Checkout failed'
     });
   }
 };
