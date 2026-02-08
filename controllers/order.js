@@ -139,19 +139,25 @@ export const createOrder = async (req, res) => {
           message: `Product not found: ${item.productId}`
         });
       }
-
+   if (!product.isAvailable) {
+   return res.status(400).json({ message: "Out of stock" });
+}
       const quantity =
         Number.isInteger(item.quantity) && item.quantity > 0
           ? item.quantity
           : 1;
-
+if (product.stock < quantity) {
+   return res.status(400).json({
+      message: "Insufficient stock"
+   });
+}
       orderItems.push({
         productId: product._id,
         title: product.title,
         price: product.price,
         quantity,
         mediaUrl: product.media?.[0]?.mediaUrl,
-        sellerId: product.sellerId
+        sellerId: product.seller
       });
 
       totalAmount += product.price * quantity;

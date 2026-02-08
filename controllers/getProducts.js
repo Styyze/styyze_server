@@ -4,16 +4,17 @@ import UserProfile from '../models/UserProfile.js';
 export const getAllProducts = async (req, res) => {
   try {
     const products = await Product.aggregate([
-      //  Match only available products (optional)
       {
-        $match: { status: 'available' }
+        $match: {
+    stock: { $gt: 0 }
+           }
       },
 
       //  Join with UserProfile using sellerId → userId
       {
         $lookup: {
-          from: 'userprofiles', // 👈 MongoDB collection name
-          localField: 'sellerId',
+          from: 'userprofiles', 
+          localField: 'seller',
           foreignField: 'userId',
           as: 'sellerProfile'
         }
@@ -37,7 +38,7 @@ export const getAllProducts = async (req, res) => {
           size: 1,
           color: 1,
           category: 1,
-          status: 1,
+          stock: 1,
           media: 1,
           createdAt: 1,
 

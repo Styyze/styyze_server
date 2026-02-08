@@ -52,7 +52,12 @@ export const createProduct = async (req, res) => {
         message: 'title, description, and price are required'
       });
     }
-
+if (req.body.stock !== undefined && req.body.stock < 0) {
+  return res.status(400).json({
+    success: false,
+    message: 'Stock cannot be negative'
+  });
+}
     // Create product (sellerId is the logged-in user)
     const product = new Product({
       seller: user._id,
@@ -63,8 +68,8 @@ export const createProduct = async (req, res) => {
       size,
       color,
       category,
-      status,
-      media: Array.isArray(media) ? media : []
+ stock: req.body.stock !== undefined ? req.body.stock : 0,
+   media: Array.isArray(media) ? media : []
     });
 
     const savedProduct = await product.save();
