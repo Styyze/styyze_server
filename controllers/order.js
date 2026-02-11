@@ -193,7 +193,7 @@ if (product.stock < quantity) {
 };
 // get order for checkout
 
-export const checkoutOrder = async (req, res) => {
+export const getOrderById = async (req, res) => {
   try {
     const { orderId } = req.params;
 

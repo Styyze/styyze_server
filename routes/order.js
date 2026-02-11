@@ -4,7 +4,7 @@ import {
     createOrder,
     getOrdersBySellerId, 
     getOrdersByBuyerId,
-    checkoutOrder 
+    getOrderById 
 } from '../controllers/order.js'
 
 
@@ -17,7 +17,7 @@ router.post('/order', createOrder );
 
 router.get("/getOrders/:seller", getOrdersBySellerId);
 router.get("/buyerOrder/:buyer", getOrdersByBuyerId);
-router.get('/checkout/:orderId', checkoutOrder);
+router.get('/order/:orderId', getOrderById);
 
 
 
