@@ -110,12 +110,26 @@ export const getOrdersByBuyerId = async (req, res) => {
 
 export const createOrder = async (req, res) => {
   try {
-    const { buyerId, items } = req.body;
+    const {
+      buyerId,
+      items,
+      shippingAddress,
+      paymentProvider,
+      paymentType
+    } = req.body;
 
+    // Basic validation
     if (!buyerId || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({
         success: false,
         message: 'buyerId and items are required'
+      });
+    }
+
+    if (!shippingAddress || !paymentProvider) {
+      return res.status(400).json({
+        success: false,
+        message: 'Shipping address and payment provider required'
       });
     }
 
@@ -126,12 +140,25 @@ export const createOrder = async (req, res) => {
       });
     }
 
+    // ✅ Fetch ALL products once (optimized)
+    const productIds = items.map(i => i.productId);
+
+    const products = await Product.find({
+      _id: { $in: productIds }
+    });
+
+    // Create quick lookup map
+    const productMap = new Map(
+      products.map(p => [p._id.toString(), p])
+    );
+
     let orderItems = [];
     let totalAmount = 0;
 
-    // calculate price from DB
+    // Build order items
     for (const item of items) {
-      const product = await Product.findById(item.productId);
+
+      const product = productMap.get(item.productId);
 
       if (!product) {
         return res.status(404).json({
@@ -139,18 +166,27 @@ export const createOrder = async (req, res) => {
           message: `Product not found: ${item.productId}`
         });
       }
-   if (!product.isAvailable) {
-   return res.status(400).json({ message: "Out of stock" });
-}
+
+      // Using stock instead of virtual for clarity
+      if (product.stock <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Out of stock"
+        });
+      }
+
       const quantity =
         Number.isInteger(item.quantity) && item.quantity > 0
           ? item.quantity
           : 1;
-if (product.stock < quantity) {
-   return res.status(400).json({
-      message: "Insufficient stock"
-   });
-}
+
+      if (product.stock < quantity) {
+        return res.status(400).json({
+          success: false,
+          message: "Insufficient stock"
+        });
+      }
+
       orderItems.push({
         productId: product._id,
         title: product.title,
@@ -163,12 +199,15 @@ if (product.stock < quantity) {
       totalAmount += product.price * quantity;
     }
 
-    // ✅ Create order (NOT checkout)
+    // Create order
     const order = new Order({
       buyerId,
       items: orderItems,
       totalAmount,
       currency: 'NGN',
+      shippingAddress,
+      paymentProvider,
+      paymentType,
       paymentStatus: 'pending',
       orderStatus: 'processing'
     });
@@ -191,7 +230,6 @@ if (product.stock < quantity) {
     });
   }
 };
-// get order for checkout
 
 export const getOrderById = async (req, res) => {
   try {
@@ -273,6 +311,135 @@ export const getOrderById = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Checkout failed'
+    });
+  }
+};
+
+
+// Update order details
+// PATCH update order before checkout
+
+export const updateOrderDetails = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const {
+      shippingAddress,
+      paymentProvider,
+      paymentType,
+      items
+    } = req.body;
+
+    // Validate orderId
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid orderId"
+      });
+    }
+
+    // Fetch order
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    //  Prevent updates after payment started
+    if (order.paymentStatus !== "pending") {
+      return res.status(400).json({
+        success: false,
+        message: "Order can no longer be modified"
+      });
+    }
+
+    // Update allowed simple fields
+    if (shippingAddress) {
+      order.shippingAddress = shippingAddress;
+    }
+
+    if (paymentProvider) {
+      order.paymentProvider = paymentProvider;
+    }
+
+    if (paymentType) {
+      order.paymentType = paymentType;
+    }
+
+    //  Update items (quantity only)
+    if (Array.isArray(items) && items.length > 0) {
+
+      const productIds = items.map(i => i.productId);
+
+      const products = await Product.find({
+        _id: { $in: productIds }
+      });
+
+      const productMap = new Map(
+        products.map(p => [p._id.toString(), p])
+      );
+
+      let updatedItems = [];
+      let recalculatedTotal = 0;
+
+      for (const item of items) {
+
+        const product = productMap.get(item.productId);
+
+        if (!product) {
+          return res.status(404).json({
+            success: false,
+            message: `Product not found: ${item.productId}`
+          });
+        }
+
+        const quantity =
+          Number.isInteger(item.quantity) && item.quantity > 0
+            ? item.quantity
+            : 1;
+
+        if (product.stock < quantity) {
+          return res.status(400).json({
+            success: false,
+            message: `Insufficient stock for ${product.title}`
+          });
+        }
+
+        updatedItems.push({
+          productId: product._id,
+          title: product.title,
+          price: product.price, // always from DB
+          quantity,
+          mediaUrl: product.media?.[0]?.mediaUrl,
+          sellerId: product.seller
+        });
+
+        recalculatedTotal += product.price * quantity;
+      }
+
+      // overwrite items safely
+      order.items = updatedItems;
+      order.totalAmount = recalculatedTotal;
+    }
+
+    // Save updated order
+    await order.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Order updated successfully",
+      data: order
+    });
+
+  } catch (error) {
+    console.error("Update order error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update order"
     });
   }
 };
