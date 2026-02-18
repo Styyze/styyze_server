@@ -1,11 +1,13 @@
 import express from 'express'
 
 import {
-    createOrder,
+    createPreOrder,
     getOrdersBySellerId, 
     getOrdersByBuyerId,
     getOrderById,
-    updateOrderDetails 
+    updateCheckoutDetails, 
+    createCheckoutDetails,
+    initiateCheckout   
 } from '../controllers/order.js'
 
 
@@ -14,12 +16,13 @@ const router = express.Router();
 
 
 
-router.post('/order', createOrder ); 
-
+router.post('/preorder', createPreOrder ); 
+router.post('/checkout',initiateCheckout )
 router.get("/getOrders/:seller", getOrdersBySellerId);
 router.get("/buyerOrder/:buyer", getOrdersByBuyerId);
 router.get('/order/:orderId', getOrderById);
-router.patch('/order/update/:orderId',updateOrderDetails);
+router.post('/order/checkout-details/:preorderId', createCheckoutDetails);
+router.patch('/order/updateCheckoutDetails/:preOrderId',updateCheckoutDetails );
 
 
 

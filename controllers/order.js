@@ -1,6 +1,9 @@
 import Product from '../models/Product.js';
-import Order from '../models/Order.js';
+import CheckoutSession from '../models/CheckoutSession.js';
+import CheckoutDetails from '../models/CheckoutDetails.js';
+import PreOrder from '../models/PreOrder.js';
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 
 
 // get orders by sellerId
@@ -17,7 +20,7 @@ export const getOrdersBySellerId = async (req, res) => {
 
     const sellerObjectId = new mongoose.Types.ObjectId(seller);
 
-    const orders = await Order.aggregate([
+    const orders = await CompletedOrder.aggregate([
       // 1️⃣ Only orders containing this seller
       {
         $match: {
@@ -38,7 +41,7 @@ export const getOrdersBySellerId = async (req, res) => {
         }
       },
 
-      // 3️⃣ Recalculate totalAmount for this seller
+      //  Recalculate totalAmount for this seller
       {
         $addFields: {
           totalAmount: {
@@ -53,7 +56,7 @@ export const getOrdersBySellerId = async (req, res) => {
         }
       },
 
-      // 4️⃣ Sort newest first
+      //  Sort newest first
       { $sort: { createdAt: -1 } }
     ]);
 
@@ -77,7 +80,7 @@ export const getOrdersByBuyerId = async (req, res) => {
   try {
     const { buyer } = req.params;
 
-    // 1️⃣ Validate buyerId
+    //  Validate buyerId
     if (!mongoose.Types.ObjectId.isValid(buyer)) {
       return res.status(400).json({
         success: false,
@@ -85,8 +88,8 @@ export const getOrdersByBuyerId = async (req, res) => {
       });
     }
 
-    // 2️⃣ Fetch buyer's orders
-    const orders = await Order.find({
+    //  Fetch buyer's orders
+    const orders = await CompletedOrder.find({
       buyerId: buyer
     })
       .sort({ createdAt: -1 });
@@ -106,131 +109,321 @@ export const getOrdersByBuyerId = async (req, res) => {
   }
 };
 
-// Create Order
+// Create Pre-Order
 
-export const createOrder = async (req, res) => {
+export const createPreOrder = async (req, res) => {
   try {
-    const {
-      buyerId,
-      items,
-      shippingAddress,
-      paymentProvider,
-      paymentType
-    } = req.body;
 
-    // Basic validation
-    if (!buyerId || !Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'buyerId and items are required'
-      });
+    const { buyerId, items } = req.body;
+
+    if (!items || items.length === 0) {
+      return res.status(400).json({ message: 'No items provided' });
     }
 
-    if (!shippingAddress || !paymentProvider) {
-      return res.status(400).json({
-        success: false,
-        message: 'Shipping address and payment provider required'
-      });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(buyerId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid buyerId'
-      });
-    }
-
-    // ✅ Fetch ALL products once (optimized)
+    // Fetch products to avoid trusting frontend price
     const productIds = items.map(i => i.productId);
 
     const products = await Product.find({
       _id: { $in: productIds }
     });
 
-    // Create quick lookup map
-    const productMap = new Map(
-      products.map(p => [p._id.toString(), p])
-    );
-
     let orderItems = [];
     let totalAmount = 0;
 
-    // Build order items
     for (const item of items) {
 
-      const product = productMap.get(item.productId);
+      const product = products.find(
+        p => p._id.toString() === item.productId
+      );
 
-      if (!product) {
-        return res.status(404).json({
-          success: false,
-          message: `Product not found: ${item.productId}`
-        });
-      }
+      if (!product) continue;
 
-      // Using stock instead of virtual for clarity
-      if (product.stock <= 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Out of stock"
-        });
-      }
-
-      const quantity =
-        Number.isInteger(item.quantity) && item.quantity > 0
-          ? item.quantity
-          : 1;
-
-      if (product.stock < quantity) {
-        return res.status(400).json({
-          success: false,
-          message: "Insufficient stock"
-        });
-      }
+      const subtotal = product.price * item.quantity;
+      totalAmount += subtotal;
 
       orderItems.push({
         productId: product._id,
         title: product.title,
         price: product.price,
-        quantity,
-        mediaUrl: product.media?.[0]?.mediaUrl,
+        quantity: item.quantity,
+        mediaUrl: product.media?.[0],
         sellerId: product.seller
       });
-
-      totalAmount += product.price * quantity;
     }
 
-    // Create order
-    const order = new Order({
+    const preorder = await PreOrder.create({
       buyerId,
       items: orderItems,
-      totalAmount,
-      currency: 'NGN',
-      shippingAddress,
-      paymentProvider,
-      paymentType,
-      paymentStatus: 'pending',
-      orderStatus: 'processing'
+      totalAmount
     });
 
-    const savedOrder = await order.save();
+    res.status(201).json({data:preorder});
 
-    return res.status(201).json({
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+// Add Shipping and Payment details
+
+
+export const createCheckoutDetails = async (req, res) => {
+
+  try {
+
+    const { preorderId } = req.params;
+
+    const {
+      shippingAddress,
+      paymentInfo
+    } = req.body;
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(preorderId)) {
+      return res.status(400).json({
+        message: 'Invalid preorderId'
+      });
+    }
+
+    // Check preorder exists
+    const preorder = await PreOrder.findById(preorderId);
+
+    if (!preorder) {
+      return res.status(404).json({
+        message: 'PreOrder not found'
+      });
+    }
+if (preorder.status === 'payment-started') {
+
+  return res.status(400).json({
+    message: 'Cannot update checkout after payment started'
+  });
+
+}
+    // Prevent duplicate checkout creation
+    const existingCheckout = await CheckoutDetails.findOne({
+      preorderId
+    });
+
+    if (existingCheckout) {
+      return res.status(400).json({
+        message: 'Checkout details already created'
+      });
+    }
+
+    // Create checkout details
+    const checkoutDetails = await CheckoutDetails.create({
+      preorderId,
+      shippingAddress,
+      paymentInfo
+    });
+
+    // Move preorder state forward
+    preorder.status = 'checkout-info-added';
+    await preorder.save();
+
+    res.status(201).json({
       success: true,
-      message: 'Order created successfully',
-      data: {
-        orderId: savedOrder._id
-      }
+      data: checkoutDetails
     });
 
   } catch (error) {
-    console.error('Create order error:', error);
-    return res.status(500).json({
+
+    res.status(500).json({
       success: false,
-      message: 'Failed to create order'
+      message: error.message
+    });
+  }
+};
+// Update Shipping and Payment Info
+export const updateCheckoutDetails = async (req, res) => {
+
+  try {
+
+    const { preorderId } = req.params;
+
+    const {
+      shippingAddress,
+      paymentInfo
+    } = req.body;
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(preorderId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid preorderId'
+      });
+    }
+
+    // Check preorder exists
+    const preorder = await PreOrder.findById(preorderId);
+
+    if (!preorder) {
+      return res.status(404).json({
+        success: false,
+        message: 'PreOrder not found'
+      });
+    }
+
+    //Prevent editing after payment started
+    if (preorder.status === 'payment-started') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot update after payment has started'
+      });
+    }
+
+    // Find checkout details
+    const checkoutDetails = await CheckoutDetails.findOne({
+      preorderId
+    });
+
+    if (!checkoutDetails) {
+      return res.status(404).json({
+        success: false,
+        message: 'CheckoutDetails not found'
+      });
+    }
+
+    // PATCH update (only provided fields)
+    if (shippingAddress) {
+      checkoutDetails.shippingAddress = {
+        ...checkoutDetails.shippingAddress,
+        ...shippingAddress
+      };
+    }
+
+    if (paymentInfo) {
+      checkoutDetails.paymentInfo = {
+        ...checkoutDetails.paymentInfo,
+        ...paymentInfo
+      };
+    }
+
+    await checkoutDetails.save();
+
+    res.status(200).json({
+      success: true,
+      data: checkoutDetails
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      success: false,
+      message: error.message
     });
   }
 };
 
+// Initiate payment
+
+export const initiateCheckout = async (req, res) => {
+
+  try {
+
+    const { preorderId } = req.body;
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(preorderId)) {
+      return res.status(400).json({ message: 'Invalid preorderId' });
+    }
+
+    // Atomic status lock (prevents race condition)
+    const preorder = await PreOrder.findOneAndUpdate(
+      {
+        _id: preorderId,
+        status: { $ne: 'payment-started' } 
+      },
+      {
+        status: 'payment-started'
+      },
+      { new: true }
+    );
+
+    if (!preorder) {
+      return res.status(400).json({
+        message: 'Payment already started or preorder invalid'
+      });
+    }
+
+    const checkoutDetails = await CheckoutDetails.findOne({
+      preorderId
+    });
+
+    if (!checkoutDetails) {
+      return res.status(400).json({
+        message: 'Shipping and payment info required before checkout'
+      });
+    }
+
+    // Better payment reference
+    const paymentReference = crypto.randomUUID();
+
+    const session = await CheckoutSession.create({
+
+      preorderId,
+      paymentProvider: checkoutDetails.paymentInfo.paymentProvider,
+      paymentReference,
+      paymentStatus: 'pending',
+      totalAmount: preorder.totalAmount,
+      currency: preorder.currency
+
+    });
+
+    // Call payment gateway here
+
+    res.json({
+      success: true,
+      data: session
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: error.message
+    });
+
+  }
+};
+
+//completed Order
+
+export const completeOrder = async (req, res) => {
+
+  try {
+
+    const { paymentReference } = req.body;
+
+    const session = await CheckoutSession.findOne({ paymentReference });
+
+    if (!session) {
+      return res.status(404).json({ message: 'Session not found' });
+    }
+
+    const preorder = await PreOrder.findById(session.preorderId);
+
+    const checkoutDetails = await CheckoutDetails.findOne({
+      preorderId: preorder._id
+    });
+
+    const finalOrder = await Order.create({
+
+      buyerId: preorder.buyerId,
+      items: preorder.items,
+      shippingAddress: checkoutDetails.shippingAddress,
+      paymentInfo: checkoutDetails.paymentInfo,
+      totalAmount: preorder.totalAmount,
+      currency: preorder.currency,
+      paymentReference,
+      status: 'paid'
+    });
+
+    res.json(finalOrder);
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 export const getOrderById = async (req, res) => {
   try {
     const { orderId } = req.params;
