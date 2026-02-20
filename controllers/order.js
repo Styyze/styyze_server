@@ -239,7 +239,7 @@ export const updateCheckoutDetails = async (req, res) => {
 
   try {
 
-    const { preorderId } = req.params;
+    const { preOrderId } = req.params;
 
     const {
       shippingAddress,
@@ -247,7 +247,7 @@ export const updateCheckoutDetails = async (req, res) => {
     } = req.body;
 
     // Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(preorderId)) {
+    if (!mongoose.Types.ObjectId.isValid(preOrderId)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid preorderId'
@@ -255,7 +255,7 @@ export const updateCheckoutDetails = async (req, res) => {
     }
 
     // Check preorder exists
-    const preorder = await PreOrder.findById(preorderId);
+    const preorder = await PreOrder.findById(preOrderId);
 
     if (!preorder) {
       return res.status(404).json({
@@ -273,8 +273,8 @@ export const updateCheckoutDetails = async (req, res) => {
     }
 
     // Find checkout details
-    const checkoutDetails = await CheckoutDetails.findOne({
-      preorderId
+    const checkoutDetails = await CheckoutDetails.findOne({preorderId:
+      preOrderId
     });
 
     if (!checkoutDetails) {
@@ -312,6 +312,7 @@ export const updateCheckoutDetails = async (req, res) => {
       success: false,
       message: error.message
     });
+    console.log(error);
   }
 };
 
