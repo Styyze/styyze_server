@@ -163,6 +163,48 @@ export const createPreOrder = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// getPreOrderById
+
+export const getPreOrderById = async (req, res) => {
+  try {
+
+    const { preOrderId } = req.params;
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(preOrderId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid preOrderId"
+      });
+    }
+
+    // Fetch preorder
+    const preorder = await PreOrder.findById(preOrderId)
+      .populate("buyerId", "name email") 
+      .populate("items.productId", "title price media seller"); 
+
+    if (!preorder) {
+      return res.status(404).json({
+        success: false,
+        message: "PreOrder not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: preorder
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+
+  }
+};
 // Add Shipping and Payment details
 
 

@@ -2,6 +2,7 @@ import express from 'express'
 
 import {
     createPreOrder,
+    getPreOrderById,
     getOrdersBySellerId, 
     getOrdersByBuyerId,
     getOrderById,
@@ -21,6 +22,7 @@ router.post('/checkout',initiateCheckout )
 router.get("/getOrders/:seller", getOrdersBySellerId);
 router.get("/buyerOrder/:buyer", getOrdersByBuyerId);
 router.get('/order/:orderId', getOrderById);
+router.get('/preorder/:preOrderId',getPreOrderById );
 router.post('/order/checkout-details/:preorderId', createCheckoutDetails);
 router.patch('/order/updateCheckoutDetails/:preOrderId',updateCheckoutDetails );
 
