@@ -116,54 +116,113 @@ export const createPreOrder = async (req, res) => {
 
     const { buyerId, items } = req.body;
 
-    if (!items || items.length === 0) {
-      return res.status(400).json({ message: 'No items provided' });
+    // Validate items
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No items provided"
+      });
     }
 
-    // Fetch products to avoid trusting frontend price
+    // Validate buyerId
+    if (!mongoose.Types.ObjectId.isValid(buyerId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid buyerId"
+      });
+    }
+
+    // Collect productIds
     const productIds = items.map(i => i.productId);
 
+    
     const products = await Product.find({
       _id: { $in: productIds }
     });
+
+    if (products.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No valid products found"
+      });
+    }
+
+    
+    const productMap = new Map(
+      products.map(p => [p._id.toString(), p])
+    );
 
     let orderItems = [];
     let totalAmount = 0;
 
     for (const item of items) {
 
-      const product = products.find(
-        p => p._id.toString() === item.productId
-      );
+      const product = productMap.get(item.productId);
 
-      if (!product) continue;
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: `Product not found: ${item.productId}`
+        });
+      }
 
-      const subtotal = product.price * item.quantity;
+      // Validate quantity
+      const quantity =
+        Number.isInteger(item.quantity) && item.quantity > 0
+          ? item.quantity
+          : null;
+
+      if (!quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid quantity for ${product.title}`
+        });
+      }
+
+      //  Stock validation
+      if (product.stock < quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Only ${product.stock} left for ${product.title}`
+        });
+      }
+
+      const subtotal = product.price * quantity;
       totalAmount += subtotal;
 
       orderItems.push({
         productId: product._id,
         title: product.title,
         price: product.price,
-        quantity: item.quantity,
-        mediaUrl: product.media?.[0],
+        quantity,
+        mediaUrl: product.media?.[0]?.mediaUrl || null,
         sellerId: product.seller
       });
     }
 
+    // Create PreOrder snapshot
     const preorder = await PreOrder.create({
       buyerId,
       items: orderItems,
-      totalAmount
+      totalAmount,
+      currency: products[0]?.currency || "NGN"
     });
 
-    res.status(201).json({data:preorder});
+    return res.status(201).json({
+      success: true,
+      data: preorder
+    });
 
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+
+    console.error("Create PreOrder Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
-
 // getPreOrderById
 
 export const getPreOrderById = async (req, res) => {

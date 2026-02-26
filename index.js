@@ -26,7 +26,7 @@ import orderRoute from './routes/order.js';
 import productRoute from './routes/product.js';
 import allProductsRoute from './routes/getAllProducts.js';
 import verifyRoute from './routes/verifyUser.js';
-
+import createCartItemsrRoute from './routes/cart.js';
 const app= express();
 dotenv.config();
 
@@ -117,6 +117,7 @@ app.use("/api/product", productRoute);
 app.use("/api/product", orderRoute);
 app.use("/api/products", allProductsRoute);
 app.use("/api/user", verifyRoute);
+app.use("/api/cart", createCartItemsrRoute);
 
 
 
