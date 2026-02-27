@@ -2,7 +2,7 @@ import express from 'express'
 
 import {
     createCartItems,
-      
+      getCartByUserId,
 } from '../controllers/cart.js'
 
 
@@ -10,7 +10,7 @@ import {
 const router = express.Router();
 
 
-
+router.get('/items/:buyerId', getCartByUserId);
 router.post('/items', createCartItems); 
 
 

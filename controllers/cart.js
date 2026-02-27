@@ -107,3 +107,53 @@ console.log(buyerId);
 
   }
 };
+
+export const getCartByUserId = async (req, res) => {
+  try {
+    const { buyerId } = req.params;
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(buyerId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid userId"
+      });
+    }
+
+    // Find cart and populate product details
+    const cart = await Cart.findOne({ buyerId })
+      .populate({
+        path: "items.productId",
+        select: "title price stock media"
+      });
+
+    if (!cart) {
+      return res.status(404).json({
+        success: false,
+        message: "Cart not found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: cart
+    });
+
+  } catch (error) {
+    console.error("Get Cart Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+
+
+
+
+
+
+
+
