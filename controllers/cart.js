@@ -148,12 +148,191 @@ export const getCartByUserId = async (req, res) => {
     });
   }
 };
+// remove item
 
+export const removeCartItem = async (req, res) => {
+  try {
+    const { cartId, productId } = req.params;
+    const userId = req.user.id; 
+    // Validate IDs
+    if (
+      !mongoose.Types.ObjectId.isValid(cartId) ||
+      !mongoose.Types.ObjectId.isValid(productId) ||
+      !mongoose.Types.ObjectId.isValid(userId)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ID(s)"
+      });
+    }
 
+    // Ensure cart belongs to logged-in user
+    const cart = await Cart.findOne({
+      _id: cartId,
+      buyerId: userId
+    });
 
+    if (!cart) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to modify this cart"
+      });
+    }
 
+    const itemExists = cart.items.some(
+      item => item.productId.toString() === productId
+    );
 
+    if (!itemExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Item not found in cart"
+      });
+    }
 
+    const updatedCart = await Cart.findByIdAndUpdate(
+      cartId,
+      {
+        $pull: { items: { productId: productId } }
+      },
+      { new: true }
+    );
 
+    return res.status(200).json({
+      success: true,
+      message: "Item removed successfully",
+      data: updatedCart
+    });
 
+  } catch (error) {
+    console.error("Remove Cart Item Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+//Update cart
+export const updateCartItem = async (req, res) => {
+  try {
+    const { cartId, productId } = req.params;
+    const { quantity } = req.body;
 
+    const userId = req.user.id; 
+
+    // Validate ObjectIds
+    if (
+      !mongoose.Types.ObjectId.isValid(cartId) ||
+      !mongoose.Types.ObjectId.isValid(productId)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid cartId or productId"
+      });
+    }
+
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Quantity must be at least 1"
+      });
+    }
+
+    const cart = await Cart.findOne({
+      _id: cartId,
+      buyerId: userId
+    });
+
+    if (!cart) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to modify this cart"
+      });
+    }
+
+    const item = cart.items.find(
+      item => item.productId.toString() === productId
+    );
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: "Item not found in cart"
+      });
+    }
+
+    // Stock validation (read-only)
+    const product = await Product.findById(productId);
+
+    if (!product || product.stock < quantity) {
+      return res.status(400).json({
+        success: false,
+        message: `Only ${product?.stock || 0} left in stock`
+      });
+    }
+
+    item.quantity = quantity;
+
+    await cart.save();
+
+    return res.status(200).json({
+      success: true,
+      data: cart
+    });
+
+  } catch (error) {
+    console.error("Update Cart Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// delete cart
+
+// Delete entire cart
+export const deleteCart = async (req, res) => {
+  try {
+    const { cartId } = req.params;
+    const userId = req.user.id; 
+
+    // Validate IDs
+    if (
+      !mongoose.Types.ObjectId.isValid(cartId) ||
+      !mongoose.Types.ObjectId.isValid(userId)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid cartId or userId"
+      });
+    }
+
+    // Ensure cart belongs to logged-in user
+    const cart = await Cart.findOne({
+      _id: cartId,
+      buyerId: userId
+    });
+
+    if (!cart) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to delete this cart"
+      });
+    }
+
+    await Cart.findByIdAndDelete(cartId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Cart deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("Delete Cart Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
