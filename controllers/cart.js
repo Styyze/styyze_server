@@ -4,9 +4,8 @@ import mongoose from "mongoose";
 
 export const createCartItems = async (req, res) => {
   try {
-
     const { buyerId, productId, quantity } = req.body;
-console.log(buyerId);
+
     // Validate ObjectIds
     if (
       !mongoose.Types.ObjectId.isValid(buyerId) ||
@@ -32,9 +31,9 @@ console.log(buyerId);
     }
 
     // Check product exists
-    const product = await Product.findById(productId);
+    const productDoc = await Product.findById(productId);
 
-    if (!product) {
+    if (!productDoc) {
       return res.status(404).json({
         success: false,
         message: "Product not found"
@@ -42,10 +41,10 @@ console.log(buyerId);
     }
 
     // Check stock
-    if (product.stock < qty) {
+    if (productDoc.stock < qty) {
       return res.status(400).json({
         success: false,
-        message: `Only ${product.stock} left in stock`
+        message: `Only ${productDoc.stock} left in stock`
       });
     }
 
@@ -55,7 +54,7 @@ console.log(buyerId);
     if (!cart) {
       cart = await Cart.create({
         buyerId,
-        items: [{ productId, quantity: qty }]
+        items: [{ product: productId, quantity: qty }]
       });
 
       return res.status(201).json({
@@ -66,17 +65,16 @@ console.log(buyerId);
 
     // Check if product already in cart
     const existingItem = cart.items.find(
-      item => item.productId.toString() === productId
+      item => item.product.toString() === productId
     );
 
     if (existingItem) {
-
       const newQuantity = existingItem.quantity + qty;
 
-      if (product.stock < newQuantity) {
+      if (productDoc.stock < newQuantity) {
         return res.status(400).json({
           success: false,
-          message: `Only ${product.stock} left in stock`
+          message: `Only ${productDoc.stock} left in stock`
         });
       }
 
@@ -84,7 +82,7 @@ console.log(buyerId);
 
     } else {
       cart.items.push({
-        productId,
+        product: productId,
         quantity: qty
       });
     }
@@ -97,14 +95,12 @@ console.log(buyerId);
     });
 
   } catch (error) {
-
     console.error("Create Cart Error:", error);
 
     return res.status(500).json({
       success: false,
       message: error.message
     });
-
   }
 };
 
@@ -123,7 +119,7 @@ export const getCartByUserId = async (req, res) => {
     // Find cart and populate product details
     const cart = await Cart.findOne({ buyerId })
       .populate({
-        path: "items.productId",
+        path: "items.product",
         select: "title price stock media"
       });
 
