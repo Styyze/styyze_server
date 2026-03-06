@@ -150,6 +150,7 @@ export const removeCartItem = async (req, res) => {
   try {
     const { cartId, productId } = req.params;
     const userId = req.user.id; 
+    console.log("userId removeItem", userId);
     // Validate IDs
     if (
       !mongoose.Types.ObjectId.isValid(cartId) ||
@@ -292,7 +293,7 @@ export const deleteCart = async (req, res) => {
   try {
     const { cartId } = req.params;
     const userId = req.user.id; 
-
+console.log("userId delete cart",userId);
     // Validate IDs
     if (
       !mongoose.Types.ObjectId.isValid(cartId) ||
