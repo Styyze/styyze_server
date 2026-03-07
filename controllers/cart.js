@@ -149,9 +149,8 @@ export const getCartByUserId = async (req, res) => {
 export const removeCartItem = async (req, res) => {
   try {
     const { cartId, productId } = req.params;
-    const userId = req.user.id; 
-    console.log("userId removeItem", userId);
-    // Validate IDs
+    const userId = req.user.id;
+
     if (
       !mongoose.Types.ObjectId.isValid(cartId) ||
       !mongoose.Types.ObjectId.isValid(productId) ||
@@ -163,7 +162,6 @@ export const removeCartItem = async (req, res) => {
       });
     }
 
-    // Ensure cart belongs to logged-in user
     const cart = await Cart.findOne({
       _id: cartId,
       buyerId: userId
@@ -173,17 +171,6 @@ export const removeCartItem = async (req, res) => {
       return res.status(403).json({
         success: false,
         message: "You are not authorized to modify this cart"
-      });
-    }
-
-    const itemExists = cart.items.some(
-      item => item.productId.toString() === productId
-    );
-
-    if (!itemExists) {
-      return res.status(404).json({
-        success: false,
-        message: "Item not found in cart"
       });
     }
 
@@ -209,6 +196,7 @@ export const removeCartItem = async (req, res) => {
     });
   }
 };
+
 //Update cart
 export const updateCartItem = async (req, res) => {
   try {
@@ -246,10 +234,11 @@ export const updateCartItem = async (req, res) => {
         message: "Not authorized to modify this cart"
       });
     }
+const productObjectId = new mongoose.Types.ObjectId(productId);
 
     const item = cart.items.find(
-      item => item.productId.toString() === productId
-    );
+  item => item.productId.equals(productId)
+                  );
 
     if (!item) {
       return res.status(404).json({
