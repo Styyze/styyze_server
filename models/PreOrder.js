@@ -48,7 +48,7 @@ const PreOrderSchema = new mongoose.Schema(
   status: {
     type: String,
     enum: ['pending','checkout-info-added','payment-started'],
-    default: 'draft'
+    default: 'pending'
   }
 },
 { timestamps: true }

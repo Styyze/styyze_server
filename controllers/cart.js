@@ -150,6 +150,7 @@ export const removeCartItem = async (req, res) => {
   try {
     const { cartId, productId } = req.params;
     const userId = req.user.id;
+    console.log("removeId",productId);
 
     if (
       !mongoose.Types.ObjectId.isValid(cartId) ||
@@ -202,7 +203,7 @@ export const updateCartItem = async (req, res) => {
   try {
     const { cartId, productId } = req.params;
     const { quantity } = req.body;
-
+console.log('productId',productId);
     const userId = req.user.id; 
 
     // Validate ObjectIds

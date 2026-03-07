@@ -233,6 +233,109 @@ export const getPreOrderById = async (req, res) => {
 
   }
 };
+// buy now create pre-order
+export const createBuyNowPreOrder = async (req, res) => {
+  try {
+    const { productId, items } = req.body;
+    const buyerId = req.user.id;
+
+    console.log("buyer", buyerId);
+
+    // Validate productId
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid productId"
+      });
+    }
+
+    // Validate items array
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Items array is required"
+      });
+    }
+
+    // Find the product
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found"
+      });
+    }
+
+    let orderItems = [];
+    let totalAmount = 0;
+
+    for (const item of items) {
+
+      if (!mongoose.Types.ObjectId.isValid(item.productId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid item productId"
+        });
+      }
+
+      if (!Number.isInteger(item.quantity) || item.quantity < 1) {
+        return res.status(400).json({
+          success: false,
+          message: "Quantity must be at least 1"
+        });
+      }
+
+      // Ensure item matches Buy Now product
+      if (item.productId !== productId) {
+        return res.status(400).json({
+          success: false,
+          message: "Item productId must match request productId"
+        });
+      }
+
+      if (product.stock < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Only ${product.stock} left in stock`
+        });
+      }
+
+      const subtotal = product.price * item.quantity;
+      totalAmount += subtotal;
+
+      orderItems.push({
+        productId: product._id,
+        title: product.title,
+        price: product.price,
+        quantity: item.quantity,
+        mediaUrl: product.media?.[0]?.mediaUrl || null,
+        sellerId: product.seller
+      });
+    }
+
+    const preorder = await PreOrder.create({
+      buyerId,
+      items: orderItems,
+      totalAmount,
+      currency: product.currency || "NGN",
+      status: "pending"
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: preorder
+    });
+
+  } catch (error) {
+    console.error("Create PreOrder Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
 // Create Pre-Order
 export const createPreOrder = async (req, res) => {
   try {

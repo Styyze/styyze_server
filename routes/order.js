@@ -7,6 +7,7 @@ import {
     getOrdersBySellerId, 
     getOrdersByBuyerId,
     getOrderById,
+    createBuyNowPreOrder,
     updateCheckoutDetails, 
     
     initiateCheckout   
@@ -20,6 +21,7 @@ const router = express.Router();
 
 router.post('/preorder', protect, createPreOrder ); 
 router.post('/checkout',initiateCheckout )
+router.post('/buy_now', protect, createBuyNowPreOrder);
 router.get("/getOrders/:seller", getOrdersBySellerId);
 router.get("/buyerOrder/:buyer", getOrdersByBuyerId);
 router.get('/order/:orderId', getOrderById);
