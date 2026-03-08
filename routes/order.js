@@ -25,7 +25,7 @@ router.post('/buy_now', protect, createBuyNowPreOrder);
 router.get("/getOrders/:seller", getOrdersBySellerId);
 router.get("/buyerOrder/:buyer", getOrdersByBuyerId);
 router.get('/order/:orderId', getOrderById);
-router.get('/preorder/:preOrderId',getPreOrderById );
+router.get('/preorder/:preorderId',getPreOrderById );
 //router.post('/order/checkout-details/:preorderId', createCheckoutDetails);
 router.patch('/order/updateCheckoutDetails/:preOrderId',updateCheckoutDetails );
 

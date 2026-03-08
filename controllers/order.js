@@ -236,34 +236,15 @@ export const getPreOrderById = async (req, res) => {
 // buy now create pre-order
 export const createBuyNowPreOrder = async (req, res) => {
   try {
-    const { productId, items } = req.body;
-    const buyerId = req.user.id;
+    const { items } = req.body;
 
-    console.log("buyer", buyerId);
+        const buyerId = req.user.id;
 
-    // Validate productId
-    if (!mongoose.Types.ObjectId.isValid(productId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid productId"
-      });
-    }
-
-    // Validate items array
+    // Validate items
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({
         success: false,
         message: "Items array is required"
-      });
-    }
-
-    // Find the product
-    const product = await Product.findById(productId);
-
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found"
       });
     }
 
@@ -275,7 +256,7 @@ export const createBuyNowPreOrder = async (req, res) => {
       if (!mongoose.Types.ObjectId.isValid(item.productId)) {
         return res.status(400).json({
           success: false,
-          message: "Invalid item productId"
+          message: "Invalid productId"
         });
       }
 
@@ -286,11 +267,13 @@ export const createBuyNowPreOrder = async (req, res) => {
         });
       }
 
-      // Ensure item matches Buy Now product
-      if (item.productId !== productId) {
-        return res.status(400).json({
+      // find product
+      const product = await Product.findById(item.productId);
+
+      if (!product) {
+        return res.status(404).json({
           success: false,
-          message: "Item productId must match request productId"
+          message: "Product not found"
         });
       }
 
@@ -318,7 +301,7 @@ export const createBuyNowPreOrder = async (req, res) => {
       buyerId,
       items: orderItems,
       totalAmount,
-      currency: product.currency || "NGN",
+      currency: "NGN",
       status: "pending"
     });
 
@@ -328,6 +311,7 @@ export const createBuyNowPreOrder = async (req, res) => {
     });
 
   } catch (error) {
+
     console.error("Create PreOrder Error:", error);
 
     return res.status(500).json({
