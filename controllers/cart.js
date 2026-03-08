@@ -4,7 +4,9 @@ import mongoose from "mongoose";
 
 export const createCartItems = async (req, res) => {
   try {
-    const { buyerId, productId, quantity } = req.body;
+    const { productId, quantity } = req.body;
+        const buyerId = req.user.id;
+
 
     // Validate ObjectIds
     if (
@@ -65,8 +67,7 @@ export const createCartItems = async (req, res) => {
 
     // Check if product already in cart
     const existingItem = cart.items.find(
-      item => item.product.toString() === productId
-    );
+    item => item.product?.toString() === productId);
 
     if (existingItem) {
       const newQuantity = existingItem.quantity + qty;
@@ -175,13 +176,15 @@ export const removeCartItem = async (req, res) => {
       });
     }
 
-    const updatedCart = await Cart.findByIdAndUpdate(
-      cartId,
-      {
-        $pull: { items: { productId: productId } }
-      },
-      { new: true }
-    );
+const productObjectId = new mongoose.Types.ObjectId(productId);
+
+const updatedCart = await Cart.findByIdAndUpdate(
+  cartId,
+  {
+    $pull: { items: { product: productObjectId } }
+  },
+  { new: true }
+);
 
     return res.status(200).json({
       success: true,
@@ -235,11 +238,9 @@ console.log('productId',productId);
         message: "Not authorized to modify this cart"
       });
     }
-const productObjectId = new mongoose.Types.ObjectId(productId);
-
-    const item = cart.items.find(
-  item => item.productId.equals(productId)
-                  );
+const item = cart.items.find(
+  item => item.product?.toString() === productId
+);
 
     if (!item) {
       return res.status(404).json({
