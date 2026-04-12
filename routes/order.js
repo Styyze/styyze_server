@@ -7,10 +7,10 @@ import {
     getOrdersBySellerId, 
     getOrdersByBuyerId,
     getOrderById,
+    createCheckoutDetails,
     createBuyNowPreOrder,
     updateCheckoutDetails, 
-    
-    initiateCheckout   
+    initiateCheckout,
 } from '../controllers/order.js'
 
 
@@ -20,14 +20,14 @@ const router = express.Router();
 
 
 router.post('/preorder', protect, createPreOrder ); 
-router.post('/checkout',initiateCheckout )
 router.post('/buy_now', protect, createBuyNowPreOrder);
 router.get("/getOrders/:seller", getOrdersBySellerId);
 router.get("/buyerOrder/:buyer", getOrdersByBuyerId);
 router.get('/order/:orderId', getOrderById);
 router.get('/preorder/:preorderId',getPreOrderById );
-//router.post('/order/checkout-details/:preorderId', createCheckoutDetails);
-router.patch('/order/updateCheckoutDetails/:preOrderId',updateCheckoutDetails );
+router.post('/order/checkout-details/:preOrderId', protect, createCheckoutDetails);
+router.patch('/order/updateCheckoutDetails/:preOrderId', protect, updateCheckoutDetails );
+router.post("/order/pay", protect, initiateCheckout);
 
 
 

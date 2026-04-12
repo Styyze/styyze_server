@@ -7,7 +7,11 @@ const CheckoutDetailsSchema = new mongoose.Schema(
     ref: 'PreOrder',
     required: true
   },
-
+buyerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
   shippingAddress: {
     fullName: {
       type: String,

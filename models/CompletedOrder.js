@@ -1,29 +1,127 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
+const PreorderItemSchema = new mongoose.Schema(
+{
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Product",
+    required: true
+  },
 
-const FinalOrderSchema = new mongoose.Schema({
+  title: String,
 
-  buyerId: mongoose.Schema.Types.ObjectId,
+  price: Number,
 
-  items: [PreorderItemSchema],
+  quantity: {
+    type: Number,
+    required: true,
+    min: 1
+  },
 
-  shippingAddress: Object,
+  mediaUrl: String,
 
-  paymentInfo: Object,
-
-  totalAmount: Number,
-
-  currency: String,
-
-  paymentReference: String,
-
-  status: {
-    type: String,
-    enum: ['paid','processing','shipped','delivered'],
-    default: 'paid'
+  sellerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
   }
 
 },
-{ timestamps: true });
+{ _id: false }
+);
 
-export default mongoose.model('Order', FinalOrderSchema);
+
+const shippingAddressSchema = new mongoose.Schema(
+{
+  fullName: { type: String, required: true },
+  phone: { type: String, required: true },
+  addressLine1: { type: String, required: true },
+  addressLine2: String,
+  city: { type: String, required: true },
+  region: String,
+  postalCode: String,
+  country: { type: String, default: "Ghana" }
+},
+{ _id: false }
+);
+
+
+const CompletedOrderSchema = new mongoose.Schema(
+
+{
+  buyerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
+
+  sellerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
+
+  items: {
+    type: [PreorderItemSchema],
+    required: true,
+    validate: v => v.length > 0
+  },
+
+  totalAmount: {
+    type: Number,
+    required: true
+  },
+
+  currency: {
+    type: String,
+    default: "GHS"
+  },
+
+  shippingAddress: {
+    type: shippingAddressSchema,
+    required: true
+  },
+
+  paymentProvider: {
+    type: String,
+    enum: ["stripe", "paypal", "flutterwave", "paystack"],
+    required: true
+  },
+
+  paymentType: {
+    type: String,
+    enum: ["card", "momo", "bank_transfer", "wallet"]
+  },
+
+  paymentReference: {
+    type: String,
+    required: true
+  },
+
+  paymentStatus: {
+    type: String,
+    enum: ["pending", "paid", "failed"],
+    default: "paid"
+  },
+
+  paidAt: Date,
+
+  orderStatus: {
+    type: String,
+    enum: ["processing", "shipped", "delivered", "cancelled"],
+    default: "processing"
+  },
+
+  trackingNumber: String,
+
+  shippedAt: Date,
+
+  deliveredAt: Date
+
+},
+
+{ timestamps: true }
+
+);
+
+export default mongoose.model("CompletedOrder", CompletedOrderSchema);

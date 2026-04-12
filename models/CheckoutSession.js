@@ -1,16 +1,22 @@
 import mongoose from 'mongoose';
 
 const CheckoutSessionSchema = new mongoose.Schema({
-
   preorderId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'PreOrder',
     required: true
   },
 
-  paymentProvider: String,
+  paymentProvider: {
+    type: String,
+    default: "paystack"
+  },
 
-  paymentReference: String,
+  paymentReference: {
+    type: String,
+    required: true,
+    unique: true
+  },
 
   paymentStatus: {
     type: String,
@@ -18,9 +24,18 @@ const CheckoutSessionSchema = new mongoose.Schema({
     default: 'pending'
   },
 
+  email: {
+    type: String,
+    required: true
+  },
+
+  amountInKobo: {
+    type: Number,
+    required: true
+  },
+
   gatewayResponse: Object
 
-},
-{ timestamps: true });
+}, { timestamps: true });
 
 export default mongoose.model('CheckoutSession', CheckoutSessionSchema);
