@@ -53,7 +53,8 @@ origin: [
     'http://localhost:3000', 
     'http://localhost:5173', 
     'https://styyze.vercel.app',
-    'https://styyze-server.onrender.com'
+    'https://styyze-server.onrender.com',
+    'https://sarto-b5x7.onrender.com'
 ],
 credentials: true,
  methods:["GET","POST","DELETE","PUT","PATCH"]
