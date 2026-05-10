@@ -499,7 +499,7 @@ export const createPreOrder = async (req, res) => {
 // Initiate payment
 export const initiateCheckout = async (req, res) => {
   try {
-    const { preorderId } = req.body;
+    const { preorderId, email } = req.body;
     const buyerId = req.user.id;
 
     // Validate IDs
@@ -558,7 +558,7 @@ export const initiateCheckout = async (req, res) => {
       paymentStatus: "pending",
       totalAmount: preorder.totalAmount,
       currency: preorder.currency,
-      email: "hirenonso@gmail.com",
+      email: email,
       amountInKobo: preorder.totalAmount * 100,
       paymentProvider: "paystack"
     });
@@ -570,7 +570,7 @@ export const initiateCheckout = async (req, res) => {
         email: "hirenonso@gmail.com",
         amount: preorder.totalAmount * 100,
         reference: paymentReference,
-        callback_url: "https://sarto-b5x7.onrender.com/payment-success"
+        callback_url: "https://styyze.vercel.app/payment-success"
       },
       {
         headers: {

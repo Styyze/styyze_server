@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 
-// Add Email to Waitlist
+// Register user
 
 export const createUser = async (req, res, next) => {
   try {
@@ -19,7 +19,6 @@ export const createUser = async (req, res, next) => {
 
     // Save new user to database
     await newUser.save();
-    console.log("User created!");
     
     const joinedAt = newUser.createdAt;    
     const userProfile = new UserProfile({
@@ -60,8 +59,9 @@ const token= jwt.sign({id:user._id, isAdmin: user.isAdmin}, process.env.JWT)
 const {password, isAdmin, ...otherDetails}=user._doc
 res.cookie("access_token",token, {
 httpOnly:true,
-SameSite:"strict",
-maxAge:3600
+sameSite:"lax",
+maxAge: 3600000,
+path: "/"
     }).status(200).json({details:{...otherDetails},isAdmin})
 
   }catch(err){
@@ -103,7 +103,16 @@ export const UserLogin = async (req, res, next) => {
     next(err);
   }
 }
+// log out
 
+export const logout = (req, res) => {
+  res.clearCookie("access_token", {
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/"
+  }).status(200).json({ message: "Logged out successfully" });
+};
 // Session refresh function
 
 export const refreshToken = async (req, res) => {
@@ -139,7 +148,6 @@ export const refreshToken = async (req, res) => {
 export const reloadSession = async (req, res) => {
   try {
     const token = req.cookies.access_token;
-    console.log(token)
     if (!token) {
       return res.status(401).json({ error: 'Access token missing' });
     }

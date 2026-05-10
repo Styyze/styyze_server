@@ -325,4 +325,48 @@ export const updatePost = async (req, res, next) => {
     }
 };
 
-// Get Post by _id
+// Delete post by user
+export const deletePost = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const userId = req.user.id; 
+console.log("userId ",userId);
+    // Validate IDs
+    if (
+      !mongoose.Types.ObjectId.isValid(postId) ||
+      !mongoose.Types.ObjectId.isValid(userId)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid postId or userId"
+      });
+    }
+
+    // Ensure post belongs to logged-in user
+    const post = await Post.findOne({
+      _id: postId,
+      userId: userId
+    });
+
+    if (!post) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to delete this post"
+      });
+    }
+
+    await Post.findByIdAndDelete(postId);
+
+    return res.status(200).json({
+      success: true,
+      message: "post deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("Delete Post Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};

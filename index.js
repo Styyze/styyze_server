@@ -48,17 +48,23 @@ mongoose.connection.on("disconnected", ()=>{
 
 
 
-app.use(cors({   
-origin: [
-    'http://localhost:3000', 
-    'http://localhost:5173', 
-    'https://styyze.vercel.app',
-    'https://styyze-server.onrender.com',
-    'https://sarto-b5x7.onrender.com'
-],
-credentials: true,
- methods:["GET","POST","DELETE","PUT","PATCH"]
-}))
+app.use(cors({
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'https://styyze.vercel.app',
+       'https://styyze-server.onrender.com',
+    ];
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "DELETE", "PUT", "PATCH","OPTIONS"]
+}));
 
 app.use(express.json())
 app.use(cookieParser())
@@ -91,7 +97,7 @@ const io = new Server(httpServer, {
             'https://styyze-server.onrender.com',
             "https://live-stream-dy6l.onrender.com"
         ],
-        methods: ["GET", "POST","PUT","DELETE", "PATCH"],
+        methods: ["GET", "POST","PUT","DELETE", "PATCH","OPTIONS"],
         credentials: true
     }
 });

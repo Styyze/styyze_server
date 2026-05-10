@@ -74,12 +74,11 @@ export const getUserProfile = async (req, res, next) => {
 };
 
 export const updateUserProfile = async (req, res, next) => {
-    const { userId } = req.body; 
+    const {userId}= req.body;
     const authenticatedUserId = req.user.id; 
-
     try {
         // Authorization check
-        if (userId !== authenticatedUserId) {
+        if (userId.toString() !== authenticatedUserId.toString()) {
             console.log("Unauthorized to update this profile." );
             return res.status(403).json({ 
                 success: false, 
@@ -106,7 +105,7 @@ export const updateUserProfile = async (req, res, next) => {
         
         // Perform the update
         const updatedUser = await UserProfile.findOneAndUpdate(
-            {id: userId}, 
+            {userId: userId}, 
             { $set: req.body }, 
             { new: true }
         );
