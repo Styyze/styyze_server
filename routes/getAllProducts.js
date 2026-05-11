@@ -1,11 +1,12 @@
 import express from 'express'
 
 
-import {getAllProducts} from '../controllers/getProducts.js';
+import {getAllProducts, searchProduct} from '../controllers/getProducts.js';
 
 const router = express.Router();
 
 router.get("/getAllProducts", getAllProducts);
+router.get("/search", searchProduct);
 
 
 

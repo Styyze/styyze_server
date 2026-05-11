@@ -69,3 +69,20 @@ export const getAllProducts = async (req, res) => {
     });
   }
 };
+
+
+// search product
+export const searchProduct = async (req, res)=>{
+    try{
+        const {q}=req.query;
+    
+if (!q){
+    return res.status(400).send({success:false, message:'No search query provided' })
+
+}
+const result= await Product.find({ title: { $regex: q, $options: 'i' } });
+res.status(200).send({success:true, data: result});
+}catch(err){
+res.status(500).send({ success: false, message: 'Internal server error', error: err.message });
+console.log(err);}
+}
