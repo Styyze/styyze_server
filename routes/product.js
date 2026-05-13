@@ -16,6 +16,4 @@ router.get("/:productId",getProductById);
 router.get("/ProductBySeller/:seller", getProductsBySellerId);
 
 
-
-
 export default router

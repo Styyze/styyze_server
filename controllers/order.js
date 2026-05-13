@@ -7,6 +7,7 @@ import CompletedOrder from '../models/CompletedOrder.js';
 import mongoose from 'mongoose';
 import crypto from 'crypto';
 import axios from "axios";
+import asyncHandler from 'express-async-handler';
 
 // Create check-out details
 export const createCheckoutDetails = async (req, res) => {
@@ -254,6 +255,43 @@ export const getOrdersByBuyerId = async (req, res) => {
     });
   }
 };
+// get preorder and user shipping details
+
+
+
+export const getCheckoutData = asyncHandler(async (req, res) => {
+
+  const { preorderId } = req.params;
+  // fetch preorder using preorderId
+  // fetch checkoutDetails using buyerId
+  const [preorder, checkoutDetails] = await Promise.all([
+
+    PreOrder.findById(preorderId),
+
+    CheckoutDetails.findOne({
+      buyerId: req.user.id
+    })
+
+  ]);
+
+  // preorder not found
+  if (!preorder) {
+    res.status(404);
+    throw new Error('Preorder not found');
+  }
+
+  res.status(200).json({
+
+    success: true,
+
+    preorder,
+
+    checkoutDetails
+
+  });
+
+});
+
 // getPreOrderById
 export const getPreOrderById = async (req, res) => {
   try {

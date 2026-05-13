@@ -11,6 +11,7 @@ import {
     createBuyNowPreOrder,
     updateCheckoutDetails, 
     initiateCheckout,
+    getCheckoutData
 } from '../controllers/order.js'
 
 
@@ -24,6 +25,7 @@ router.post('/buy_now', protect, createBuyNowPreOrder);
 router.get("/getOrders/:seller", getOrdersBySellerId);
 router.get("/buyerOrder/:buyer", getOrdersByBuyerId);
 router.get('/order/:orderId', getOrderById);
+router.get('/shipping/details/:preorderId',protect, getCheckoutData);
 router.get('/preorder/:preorderId',getPreOrderById );
 router.post('/order/checkout-details/:preOrderId', protect, createCheckoutDetails);
 router.patch('/order/updateCheckoutDetails/:preOrderId', protect, updateCheckoutDetails );
