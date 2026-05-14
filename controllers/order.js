@@ -77,7 +77,7 @@ export const updateCheckoutDetails = async (req, res) => {
   try {
 
     const { preOrderId } = req.params;
-
+console.log("preorder from client", preOrderId);
     const {
       shippingAddress,
       paymentInfo
@@ -276,9 +276,9 @@ export const getCheckoutData = asyncHandler(async (req, res) => {
 
   // preorder not found
   if (!preorder) {
-    res.status(404);
-    throw new Error('Preorder not found');
-  }
+  res.status(404);
+  throw new Error('Preorder not found');
+}
 
   res.status(200).json({
 
