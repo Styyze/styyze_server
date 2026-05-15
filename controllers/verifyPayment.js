@@ -54,7 +54,7 @@ export const verifyPayment = async (req, res) => {
         },
         { $set: { paymentStatus: "cancelled" } }
     );
-}
+
 
     res.json({ success: true, message: "Payment verified successfully", session });
 
@@ -72,7 +72,7 @@ export const paystackWebhook = async (req, res) => {
   try {
     const hash = crypto
       .createHmac("sha512", process.env.PAYSTACK_SECRET_KEY)
-      .update(req.rawBody);
+      .update(req.rawBody)
       .digest("hex");
 
     if (hash !== req.headers["x-paystack-signature"]) {
