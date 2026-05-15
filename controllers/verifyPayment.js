@@ -46,6 +46,15 @@ export const verifyPayment = async (req, res) => {
     await session.save();
 
     await PreOrder.findByIdAndUpdate(session.preorderId, { status: "paid" });
+    await CheckoutSession.updateMany(
+        { 
+          preorderId: session.preorderId, 
+          paymentReference: { $ne: reference }, 
+          paymentStatus: "pending" 
+        },
+        { $set: { paymentStatus: "cancelled" } }
+    );
+}
 
     res.json({ success: true, message: "Payment verified successfully", session });
 
@@ -59,10 +68,11 @@ export const verifyPayment = async (req, res) => {
 // paystack webhook
 
 export const paystackWebhook = async (req, res) => {
+  console.log("websocket received!");
   try {
     const hash = crypto
       .createHmac("sha512", process.env.PAYSTACK_SECRET_KEY)
-      .update(JSON.stringify(req.body))
+      .update(req.rawBody);
       .digest("hex");
 
     if (hash !== req.headers["x-paystack-signature"]) {

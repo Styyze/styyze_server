@@ -66,7 +66,11 @@ app.use(cors({
   methods: ["GET", "POST", "DELETE", "PUT", "PATCH","OPTIONS"]
 }));
 
-app.use(express.json())
+app.use(express.json({
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+}))
 app.use(cookieParser())
 
 
