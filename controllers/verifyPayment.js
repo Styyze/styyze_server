@@ -45,7 +45,7 @@ export const verifyPayment = async (req, res) => {
     session.paymentStatus = "success";
     await session.save();
 
-    await PreOrder.findByIdAndUpdate(session.preorderId, { status: "paid" });
+    await PreOrder.ffindOneAndUpdate(session.preorderId, { status: "paid" });
     await CheckoutSession.updateMany(
         { 
           preorderId: session.preorderId, 
@@ -94,7 +94,7 @@ export const paystackWebhook = async (req, res) => {
         session.paymentStatus = "success";
         await session.save();
 
-        await PreOrder.findByIdAndUpdate(session.preorderId, { status: "paid" });
+        await PreOrder.findOneAndUpdate(session.preorderId, { status: "paid" });
       }
     }
 
