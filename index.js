@@ -54,6 +54,7 @@ app.use(cors({
       'http://localhost:3000',
       'http://localhost:5173',
       'https://styyze.vercel.app',
+      'https://sarto-b5x7.onrender.com',
        'https://styyze-server.onrender.com',
     ];
     if (!origin || allowedOrigins.includes(origin)) {
