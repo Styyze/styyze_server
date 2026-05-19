@@ -608,7 +608,7 @@ export const initiateCheckout = async (req, res) => {
         email: "hirenonso@gmail.com",
         amount: preorder.totalAmount * 100,
         reference: paymentReference,
-        callback_url: "https://styyze.vercel.app/payment-success"
+        callback_url: "https://sarto-b5x7.onrender.com/payment-success"
       },
       {
         headers: {

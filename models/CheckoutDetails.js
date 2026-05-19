@@ -56,7 +56,7 @@ buyerId: {
 
   status: {
     type: String,
-    enum: ['editing','ready-for-payment'],
+    enum: ['editing','ready-for-payment','paid'],
     default: 'editing'
   }
   

@@ -1,5 +1,7 @@
 import axios from "axios";
 import CheckoutSession from "../models/CheckoutSession.js";
+import CheckoutDetails from "../models/CheckoutDetails.js";
+
 import PreOrder from "../models/PreOrder.js";
 import crypto from "crypto";
 
@@ -45,7 +47,9 @@ export const verifyPayment = async (req, res) => {
     session.paymentStatus = "success";
     await session.save();
 
-    await PreOrder.ffindOneAndUpdate(session.preorderId, { status: "paid" });
+    await PreOrder.findByIdndUpdate(session.preorderId, { status: "paid" });
+    await CheckoutDetails.findOneAndUpdate({preorderId:session.preorderId}, { status: "paid" });
+
     await CheckoutSession.updateMany(
         { 
           preorderId: session.preorderId, 
@@ -94,7 +98,9 @@ export const paystackWebhook = async (req, res) => {
         session.paymentStatus = "success";
         await session.save();
 
-        await PreOrder.findOneAndUpdate(session.preorderId, { status: "paid" });
+        await PreOrder.findByIdAndUpdate(session.preorderId, { status: "paid" });
+        await CheckoutDetails.findOneAndUpdate({preorderId:session.preorderId}, { status: "paid" });
+
       }
     }
 
