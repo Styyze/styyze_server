@@ -575,17 +575,28 @@ export const initiateCheckout = async (req, res) => {
     // Ensure checkout details exist
     const checkoutDetails = await CheckoutDetails.findOne({ preorderId });
 
+
     if (!checkoutDetails) {
       return res.status(400).json({
         success: false,
         message: "Shipping and payment info required before checkout"
       });
+
+
     }
 
     // Update status only if not already started
     if (preorder.status !== "payment-started") {
       preorder.status = "payment-started";
       await preorder.save();
+
+
+
+
+
+
+
+      
     }
 
     const paymentReference = crypto.randomUUID();

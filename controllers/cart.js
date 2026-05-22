@@ -6,7 +6,7 @@ export const createCartItems = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
         const buyerId = req.user.id;
-
+console.log("from create item cart");
 
     // Validate ObjectIds
     if (!mongoose.Types.ObjectId.isValid(buyerId) 
