@@ -76,7 +76,7 @@ export const updateCheckoutDetails = async (req, res) => {
 
   try {
 
-    const { preOrderId } = req.params;
+const { preOrderId } = req.params;
 console.log("preorder from client", preOrderId);
     const {
       shippingAddress,
@@ -444,7 +444,7 @@ export const createPreOrder = async (req, res) => {
       });
     }
 
-    // Security check: ensure cart belongs to logged-in user
+    //ensure cart belongs to logged-in user
     if (!cart.buyerId.equals(buyerId)) {
   return res.status(403).json({
     success: false,
@@ -619,7 +619,7 @@ export const initiateCheckout = async (req, res) => {
         email: "hirenonso@gmail.com",
         amount: preorder.totalAmount * 100,
         reference: paymentReference,
-        callback_url: "https://sarto-b5x7.onrender.com/payment-success"
+        callback_url: "https://styyze.vercel.app/payment-success"
       },
       {
         headers: {
