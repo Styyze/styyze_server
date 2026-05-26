@@ -1,6 +1,7 @@
 import Product from '../models/Product.js';
 import mongoose from 'mongoose';
 import User from '../models/Users.js';
+import asyncHandler from "express-async-handler";
 
 export const createProduct = async (req, res) => {
   try {
@@ -185,3 +186,66 @@ export const getProductsBySellerId = async (req, res) => {
     });
   }
 };
+
+// update product
+
+export const updateProduct = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+  const product = await Product.findById(productId);
+
+  if (!product) {
+    return res.status(404).json({
+      success: false,
+      message: "Product not found",
+    });
+  }
+
+  // Ensure the authenticated user owns the product
+  if (product.seller.toString() !== req.user.id.toString()) {
+    return res.status(403).json({
+      success: false,
+      message: "Not authorized to update this product",
+    });
+  }
+
+  const allowedFields = [
+    "title",
+    "description",
+    "price",
+    "media",
+    "currency",
+    "size",
+    "color",
+    "category",
+    "stock",
+  ];
+
+  for (const field of allowedFields) {
+    if (req.body[field] !== undefined) {
+      product[field] = req.body[field];
+    }
+  }
+
+  // Validation
+  if (product.price < 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Price cannot be negative",
+    });
+  }
+
+  if (product.stock < 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Stock cannot be negative",
+    });
+  }
+
+  const updatedProduct = await product.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Product updated successfully",
+    product: updatedProduct,
+  });
+});

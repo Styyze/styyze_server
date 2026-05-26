@@ -28,7 +28,7 @@ router.get('/order/:orderId', getOrderById);
 router.get('/shipping/details/:preorderId',protect, getCheckoutData);
 router.get('/preorder/:preorderId',getPreOrderById );
 router.post('/order/checkout-details/:preOrderId', protect, createCheckoutDetails);
-router.patch('/order/updateCheckoutDetails/:preOrderId',  updateCheckoutDetails );
+router.patch('/order/updateCheckoutDetails/:preOrderId', protect, updateCheckoutDetails );
 router.post("/order/pay", protect, initiateCheckout);
 
 
