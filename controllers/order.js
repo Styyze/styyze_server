@@ -619,7 +619,7 @@ export const initiateCheckout = async (req, res) => {
         email: "hirenonso@gmail.com",
         amount: preorder.totalAmount * 100,
         reference: paymentReference,
-        callback_url: "https://styyze.vercel.app/payment-success"
+        callback_url: "https://styyze.vercel.app/marketplace/payment-success"
       },
       {
         headers: {
