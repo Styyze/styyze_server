@@ -142,10 +142,13 @@ app.use("/api/payment", verifyPamentRoute);
 
 io.use((socket, next) => {
   console.log("Socket handshake received");
+  console.log("Origin:", socket.handshake.headers.origin);
+  console.log("Cookies:", socket.handshake.headers.cookie);
 
-  const cookies = cookie.parse(socket.handshake.headers.cookie || "");
-  const token = cookies.token; 
-  console.log("token from client", token);
+
+const cookies = cookie.parse(socket.handshake.headers.cookie || "");
+const token = cookies.access_token;
+console.log("token from client", token);
   if (!token) return next(new Error('Authentication error: No token provided'));
 
   try {
