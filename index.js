@@ -4,6 +4,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import cookie from "cookie";
 import Message from './models/Message.js'; 
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
