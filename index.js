@@ -140,7 +140,11 @@ app.use("/api/payment", verifyPamentRoute);
 // Middleware
 
 io.use((socket, next) => {
-  const token = socket.handshake.auth?.token;
+  console.log("Socket handshake received");
+
+  const cookies = cookie.parse(socket.handshake.headers.cookie || "");
+  const token = cookies.token; 
+  console.log("token from client", token);
   if (!token) return next(new Error('Authentication error: No token provided'));
 
   try {
