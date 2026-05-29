@@ -8,25 +8,35 @@ import Comment from '../models/PostComments.js'
 
 export const post = async (req, res, next) => {
     try {
-        const {userId,caption,location, media,tags, clientId}= req.body;
-    console.log(clientId);
+        const { userId, caption, location, media, tags, clientId } = req.body;
+        console.log(clientId);
 
-
-    const newPost = new Post({
-        userId,
-        media,
-        caption,
-        location,
-        tags
+        const newPost = new Post({
+            userId,
+            media,
+            caption,
+            location,
+            tags
+        });
         
-    });
         await newPost.save();
 
-        // Notify the client about the new post
-        req.io.to(clientId).emit('new post', newPost);
+        // POPULATE details so receiving users know who posted it immediately
+        await newPost.populate({
+            path: 'userId',
+            select: 'name userProfile',
+            model: 'User',
+            populate: {
+                path: 'userProfile',
+                model: 'UserProfile',
+                select: 'avatarUrl username'
+            }
+        });
 
-        console.log(`New post created by userId: ${userId}`);
-        console.log(`Socket.IO client: ${Array.from(req.io.sockets.sockets.keys())}`);
+       
+        req.io.emit('new_post', newPost);
+
+        console.log(`New post created by userId: ${userId} and broadcasted globally.`);
 
         res.status(200).send({
             success: true,
@@ -42,18 +52,6 @@ export const post = async (req, res, next) => {
         });
     }
 };
-
-
-// Utility: Build nested comment tree per post
-const buildCommentTrees = (comments) => {
-  const trees = new Map(); // postId => [top-level comments]
-  const commentMap = new Map();
-
-  // Initialize map
-  comments.forEach(comment => {
-    comment.replies = [];
-    commentMap.set(comment._id.toString(), comment);
-  });
 
   // Build trees
   comments.forEach(comment => {
