@@ -54,22 +54,41 @@ export const post = async (req, res, next) => {
 };
 
   // Build trees
-  comments.forEach(comment => {
+  // Build nested comment trees grouped by postId
+const buildCommentTrees = (comments) => {
+  const commentMap = new Map();
+  const trees = new Map();
+
+  // First pass: store all comments and initialize replies array
+  comments.forEach((comment) => {
+    comment.replies = [];
+    commentMap.set(comment._id.toString(), comment);
+  });
+
+  // Second pass: build parent-child relationships
+  comments.forEach((comment) => {
     const postId = comment.postId.toString();
+
     if (comment.parentCommentId) {
-      const parent = commentMap.get(comment.parentCommentId.toString());
+      const parent = commentMap.get(
+        comment.parentCommentId.toString()
+      );
+
       if (parent) {
         parent.replies.push(comment);
       }
     } else {
-      if (!trees.has(postId)) trees.set(postId, []);
+      // Root-level comment
+      if (!trees.has(postId)) {
+        trees.set(postId, []);
+      }
+
       trees.get(postId).push(comment);
     }
   });
 
   return trees;
 };
-
 // Controller: Get all posts with nested comments
 export const getPostsWithComments = async (req, res) => {
   try {
