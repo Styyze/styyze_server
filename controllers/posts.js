@@ -8,7 +8,7 @@ import Comment from '../models/PostComments.js'
 
 export const post = async (req, res, next) => {
     try {
-        const { userId, caption, location, media, tags, clientId } = req.body;
+        const { userId, caption,  location, brandsTagged, media, tags, clientId } = req.body;
         console.log(clientId);
 
         const newPost = new Post({
@@ -16,7 +16,8 @@ export const post = async (req, res, next) => {
             media,
             caption,
             location,
-            tags
+            tags,
+            brandsTagged
         });
         
         await newPost.save();
