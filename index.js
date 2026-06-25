@@ -29,9 +29,10 @@ import allProductsRoute from './routes/getAllProducts.js';
 import verifyRoute from './routes/verifyUser.js';
 import createCartItemsrRoute from './routes/cart.js';
 import verifyPamentRoute from './routes/verifyPayment.js';
+import createMeasurementRoute from './routes/CustomOrder.js';
+dotenv.config();
 
 const app= express();
-dotenv.config();
 
 const connect= async ()=>{
 try{
@@ -57,6 +58,7 @@ app.use(cors({
       'https://styyze.vercel.app',
       'https://sarto-b5x7.onrender.com',
        'https://styyze-server.onrender.com',
+       'https://styzze-ai-model.onrender.com',
     ];
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -134,6 +136,7 @@ app.use("/api/products", allProductsRoute);
 app.use("/api/user", verifyRoute);
 app.use("/api/cart", createCartItemsrRoute);
 app.use("/api/payment", verifyPamentRoute);
+app.use("/api/customOrder", createMeasurementRoute);
 
 
 

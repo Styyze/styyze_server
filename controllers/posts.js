@@ -54,7 +54,6 @@ export const post = async (req, res, next) => {
     }
 };
 
-  // Build trees
   // Build nested comment trees grouped by postId
 const buildCommentTrees = (comments) => {
   const commentMap = new Map();
