@@ -7,6 +7,16 @@ const LikeSchema = new mongoose.Schema({
          type: mongoose.Schema.Types.ObjectId, 
          ref: "User"
          },
+    name: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    username: {
+        type: String,
+        required: true,
+        trim: true
+    },
 
     postId: { 
         type: mongoose.Schema.Types.ObjectId, 

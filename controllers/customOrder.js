@@ -15,7 +15,7 @@ export const createMeasurementOrder = async (req, res, next) => {
             });
         }
 
-        const AI_BASE_URL = process.env.AI_SERVICE_URL || 'http://127.0.0.1:8000';
+        const AI_BASE_URL = 'https://styzze-ai-model.onrender.com';
         
         
         const endpointPath = sideImageUrl ? '/measure/geometric' : '/measure/live';
@@ -41,7 +41,7 @@ export const createMeasurementOrder = async (req, res, next) => {
         });
 
         
-        const newOrder = new Order({
+        const newOrder = new CustomOrder({
             userId,
             userHeightCm: Number(userHeightCm),
             frontImageUrl,

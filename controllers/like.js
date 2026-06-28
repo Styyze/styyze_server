@@ -30,7 +30,7 @@ export const like = async (req, res, next) => {
         }
 
         // Check if user already liked the post
-const likeExists = Array.isArray(post.likes) && post.likes.some(like => like.userId.toString() === userId);
+const likeExists = Array.isArray(post.likes) && post.likes.some(like => like.userId.toString() === userId.toString());
 
         if (likeExists) {
             // Unlike: Remove userId from likes array and decrement likeCount
@@ -42,7 +42,10 @@ const likeExists = Array.isArray(post.likes) && post.likes.some(like => like.use
         } else {
             // Like: Add userId to likes array and increment likeCount
             await Post.findByIdAndUpdate(postId, {
-                $push: { likes: { userId } },
+                $push: { likes: { userId:user._id,
+                    name: user.name,
+                    username: user.username
+                 } },
                 $inc: { likeCount: 1 }
             });
             res.status(200).send({ message: "Post liked." });
@@ -59,18 +62,34 @@ export const getAllLike = async (req, res, next) => {
     const { postId } = req.query;
 
     if (!postId) {
-        return res.status(400).send({ message: "Missing postId." });
+        return res.status(400).send({ 
+            message: "Missing postId." 
+        });
     }
 
     try {
-        // Fetch all likes for the post
-        const likes = await Like.find({ post: postId });
-        const userIds = likes.map((like) => like.userId.toString());
-        const likeCount = userIds.length;
 
-        res.status(200).send({ userIds, likeCount });
+        const post = await Post.findById(postId)
+            .select("likes likeCount");
+
+        if (!post) {
+            return res.status(404).send({
+                message: "Post not found."
+            });
+        }
+
+
+        res.status(200).send({ 
+            likes: post.likes,
+            likeCount: post.likeCount
+        });
+
     } catch (error) {
+
         console.error("Error fetching likes:", error);
-        res.status(500).send({ message: "Internal server error." });
+
+        res.status(500).send({ 
+            message: "Internal server error." 
+        });
     }
 }
