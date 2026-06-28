@@ -29,7 +29,7 @@ import allProductsRoute from './routes/getAllProducts.js';
 import verifyRoute from './routes/verifyUser.js';
 import createCartItemsrRoute from './routes/cart.js';
 import verifyPamentRoute from './routes/verifyPayment.js';
-import createMeasurementRoute from './routes/CustomOrder.js';
+import createMeasurementRoute from './routes/customOrder.js';
 dotenv.config();
 
 const app= express();
