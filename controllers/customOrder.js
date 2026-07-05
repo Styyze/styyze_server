@@ -1,13 +1,13 @@
 import CustomOrder from '../models/CustomOrder.js';
 import axios from 'axios';
 
-import FormData from 'form-data'; 
-
 export const createMeasurementOrder = async (req, res, next) => {
     try {
+        // FIX 1: Destructure the actual fields the client sent directly at the root of req.body
         const { userHeightCm, frontImageUrl, sideImageUrl } = req.body;
         const userId = req.userId || req.body.userId;
 
+        // 1. Validation check (these variables now properly exist!)
         if (!userId || !userHeightCm || !frontImageUrl) {
             return res.status(400).json({
                 success: false,
@@ -17,30 +17,27 @@ export const createMeasurementOrder = async (req, res, next) => {
 
         const AI_BASE_URL = 'https://styzze-ai-model.onrender.com';
         
-        
+        // 2. Select route based on presence of sideImageUrl
         const endpointPath = sideImageUrl ? '/measure/geometric' : '/measure/live';
         const targetEndpoint = `${AI_BASE_URL}${endpointPath}`;
 
         console.log(`[AI Sync] Target Endpoint determined: ${targetEndpoint}`);
 
-        const frontImageRes = await axios.get(frontImageUrl, { responseType: 'arraybuffer' });
-        
-        const formData = new FormData();
-        formData.append('front_image', Buffer.from(frontImageRes.data), 'front_input.jpg');
-        formData.append('height_cm', userHeightCm.toString());
+        // FIX 2: Build the cleanly-named payload object for FastAPI Pydantic
+        const fastapiPayload = {
+            front_image_url: frontImageUrl,
+            side_image_url: sideImageUrl || null,
+            height_cm: Number(userHeightCm)
+        };
 
-        if (sideImageUrl) {
-            const sideImageRes = await axios.get(sideImageUrl, { responseType: 'arraybuffer' });
-            formData.append('side_image', Buffer.from(sideImageRes.data), 'side_input.jpg');
-        }
-
-        const aiResponse = await axios.post(targetEndpoint, formData, {
+        // 4. Send direct JSON data to the AI server
+        const aiResponse = await axios.post(targetEndpoint, fastapiPayload, {
             headers: {
-                ...formData.getHeaders() 
+                'Content-Type': 'application/json'
             }
         });
 
-        
+        // 5. Persist the output payload into your MongoDB/Database
         const newOrder = new CustomOrder({
             userId,
             userHeightCm: Number(userHeightCm),
@@ -52,10 +49,12 @@ export const createMeasurementOrder = async (req, res, next) => {
 
         const savedOrder = await newOrder.save();
 
+        // FIX 3: Look at how your client logs data: response?.data?.data
+        // We ensure the returned object wraps the savedOrder properly so the client gets its measurements.
         return res.status(201).json({
             success: true,
             message: `Order analytics generated successfully using the ${aiResponse.data.tool} engine.`,
-            order: savedOrder
+            data: savedOrder // client reads response.data.data
         });
 
     } catch (error) {
