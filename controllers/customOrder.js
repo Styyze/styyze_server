@@ -54,7 +54,7 @@ export const createMeasurementOrder = async (req, res, next) => {
         return res.status(201).json({
             success: true,
             message: `Order analytics generated successfully using the ${aiResponse.data.tool} engine.`,
-            data: savedOrder // client reads response.data.data
+            data: savedOrder 
         });
 
     } catch (error) {
@@ -63,8 +63,7 @@ export const createMeasurementOrder = async (req, res, next) => {
             console.error(`[AI Service Error Data]:`, error.response.data);
             return res.status(error.response.status).json({
                 success: false,
-                message: "The AI Model service failed to compute measurements.",
-                detail: error.response.data
+                message: error.response.data
             });
         }
         
