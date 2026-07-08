@@ -103,7 +103,8 @@ const io = new Server(httpServer, {
             'http://localhost:5173',
             'https://styyze.vercel.app',
             'https://styyze-server.onrender.com',
-            "https://live-stream-dy6l.onrender.com"
+            "https://live-stream-dy6l.onrender.com",
+            "https://lively-dieffenbachia-377cfd.netlify.app"
         ],
         methods: ["GET", "POST","PUT","DELETE", "PATCH","OPTIONS"],
         credentials: true
