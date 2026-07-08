@@ -59,6 +59,8 @@ app.use(cors({
       'https://sarto-b5x7.onrender.com',
        'https://styyze-server.onrender.com',
        'https://styzze-ai-model.onrender.com',
+      'https://lively-dieffenbachia-377cfd.netlify.app'
+
     ];
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
