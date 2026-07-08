@@ -31,12 +31,15 @@ export const createMeasurementOrder = async (req, res, next) => {
         };
 
         // 4. Send direct JSON data to the AI server
+        await axios.get(`${AI_BASE_URL}/health`);
+
         const aiResponse = await axios.post(targetEndpoint, fastapiPayload, {
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+              timeout: 120000
         });
-
+console.log("AI Payload:", fastapiPayload);
         // 5. Persist the output payload into your MongoDB/Database
         const newOrder = new CustomOrder({
             userId,
@@ -61,6 +64,8 @@ export const createMeasurementOrder = async (req, res, next) => {
         if (error.response) {
             console.error(`[AI Service Error Status]: ${error.response.status}`);
             console.error(`[AI Service Error Data]:`, error.response.data);
+            console.error("AI Error Headers:", error.response.headers);
+            console.error("AI Error Config:", error.config);
             return res.status(error.response.status).json({
                 success: false,
                 message: error.response.data
