@@ -1,78 +1,130 @@
 import CustomOrder from '../models/CustomOrder.js';
 import axios from 'axios';
+import FormData from 'form-data';
+import fs from 'fs';
 
 export const createMeasurementOrder = async (req, res, next) => {
     try {
-        // FIX 1: Destructure the actual fields the client sent directly at the root of req.body
-        const { userHeightCm, frontImageUrl, sideImageUrl } = req.body;
-        const userId = req.userId || req.body.userId;
+        const { userHeightCm, userId} = req.body;
 
-        // 1. Validation check (these variables now properly exist!)
-        if (!userId || !userHeightCm || !frontImageUrl) {
+        const frontImage = req.files?.front_image?.[0];
+        const sideImage = req.files?.side_image?.[0];
+
+        // Validation
+        if (!userId || !userHeightCm || !frontImage) {
             return res.status(400).json({
                 success: false,
-                message: "Missing required fields: userId, userHeightCm, and frontImageUrl are mandatory."
+                message: "Missing required fields: userId, userHeightCm, and front_image are mandatory."
             });
         }
 
+
         const AI_BASE_URL = 'https://styzze-ai-model.onrender.com';
-        
-        // 2. Select route based on presence of sideImageUrl
-        const endpointPath = sideImageUrl ? '/measure/geometric' : '/measure/live';
+
+        // If side image exists, use geometric measurement
+        const endpointPath = sideImage 
+            ? '/measure/geometric' 
+            : '/measure/live';
+
         const targetEndpoint = `${AI_BASE_URL}${endpointPath}`;
 
-        console.log(`[AI Sync] Target Endpoint determined: ${targetEndpoint}`);
+        console.log(`[AI Sync] Target Endpoint: ${targetEndpoint}`);
 
-        // FIX 2: Build the cleanly-named payload object for FastAPI Pydantic
-        const fastapiPayload = {
-            front_image_url: frontImageUrl,
-            side_image_url: sideImageUrl || null,
-            height_cm: Number(userHeightCm)
-        };
 
-        // 4. Send direct JSON data to the AI server
+        // Create multipart form-data for FastAPI
+        const form = new FormData();
+
+        form.append(
+            "front_image",
+            fs.createReadStream(frontImage.path)
+        );
+
+
+        if (sideImage) {
+            form.append(
+                "side_image",
+                fs.createReadStream(sideImage.path)
+            );
+        }
+
+
+        form.append(
+            "height_cm",
+            Number(userHeightCm)
+        );
+
+
+        // Health check
         await axios.get(`${AI_BASE_URL}/health`);
 
-        const aiResponse = await axios.post(targetEndpoint, fastapiPayload, {
-            headers: {
-                'Content-Type': 'application/json'
-            },
-              timeout: 120000
-        });
-console.log("AI Payload:", fastapiPayload);
-        // 5. Persist the output payload into your MongoDB/Database
+
+        // Send image files to AI service
+        const aiResponse = await axios.post(
+            targetEndpoint,
+            form,
+            {
+                headers: {
+                    ...form.getHeaders()
+                },
+                maxContentLength: Infinity,
+                maxBodyLength: Infinity,
+                timeout: 120000
+            }
+        );
+
+
+        console.log("AI Response:", aiResponse.data);
+
+
+        // Save order
         const newOrder = new CustomOrder({
             userId,
             userHeightCm: Number(userHeightCm),
-            frontImageUrl,
-            sideImageUrl: sideImageUrl || null,
-            ai_measurement_data: aiResponse.data, 
+
+            // Save local paths temporarily or replace with Cloudinary URLs later
+            frontImageUrl: frontImage.path,
+            sideImageUrl: sideImage ? sideImage.path : null,
+
+            ai_measurement_data: aiResponse.data,
             status: 'completed'
         });
 
+
         const savedOrder = await newOrder.save();
 
-        // FIX 3: Look at how your client logs data: response?.data?.data
-        // We ensure the returned object wraps the savedOrder properly so the client gets its measurements.
+
         return res.status(201).json({
             success: true,
-            message: `Order analytics generated successfully using the ${aiResponse.data.tool} engine.`,
-            data: savedOrder 
+            message: `Order analytics generated successfully using ${aiResponse.data.tool} engine.`,
+            data: savedOrder
         });
 
+
     } catch (error) {
+
         if (error.response) {
-            console.error(`[AI Service Error Status]: ${error.response.status}`);
-            console.error(`[AI Service Error Data]:`, error.response.data);
-            console.error("AI Error Headers:", error.response.headers);
-            console.error("AI Error Config:", error.config);
+
+            console.error(
+                `[AI Service Error Status]: ${error.response.status}`
+            );
+
+            console.error(
+                `[AI Service Error Data]:`,
+                error.response.data
+            );
+
             return res.status(error.response.status).json({
-                success: false,
-                message: error.response.data
+                success:false,
+                message:error.response.data
             });
         }
-        
-        console.error("Critical server controller exception:", error);
-        next(error); 
+
+
+        console.error(
+            "Critical server controller exception:",
+            error
+        );
+
+        next(error);
     }
 };
