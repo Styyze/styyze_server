@@ -9,6 +9,21 @@ export const createMeasurementOrder = async (req, res, next) => {
 
         const frontImage = req.files?.front_image?.[0];
         const sideImage = req.files?.side_image?.[0];
+         console.log("Front Image Details:");
+        console.log({
+            filename: frontImage?.originalname,
+            mimetype: frontImage?.mimetype,
+            path: frontImage?.path
+        });
+
+
+        console.log("Side Image Details:");
+        console.log({
+            filename: sideImage?.originalname,
+            mimetype: sideImage?.mimetype,
+            path: sideImage?.path
+        });
+
 
         // Validation
         if (!userId || !userHeightCm || !frontImage) {
@@ -32,20 +47,28 @@ export const createMeasurementOrder = async (req, res, next) => {
 
 
         // Create multipart form-data for FastAPI
-        const form = new FormData();
+    const form = new FormData();
 
-        form.append(
-            "front_image",
-            fs.createReadStream(frontImage.path)
-        );
+    form.append(
+    "front_image",
+    fs.createReadStream(frontImage.path),
+    {
+        filename: frontImage.originalname,
+        contentType: frontImage.mimetype
+    }
+           );
 
 
-        if (sideImage) {
-            form.append(
-                "side_image",
-                fs.createReadStream(sideImage.path)
-            );
+    if (sideImage) {
+    form.append(
+        "side_image",
+        fs.createReadStream(sideImage.path),
+        {
+            filename: sideImage.originalname,
+            contentType: sideImage.mimetype
         }
+    );
+}
 
 
         form.append(
