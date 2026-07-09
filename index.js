@@ -59,7 +59,8 @@ app.use(cors({
       'https://sarto-b5x7.onrender.com',
        'https://styyze-server.onrender.com',
        'https://styzze-ai-model.onrender.com',
-      'https://styyzeserver-production.up.railway.app'
+      'https://styyzeserver-production.up.railway.app',
+      'https://styyze-ai-service-production.up.railway.app'
 
     ];
     if (!origin || allowedOrigins.includes(origin)) {

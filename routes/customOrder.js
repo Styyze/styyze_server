@@ -4,25 +4,13 @@ import multer from "multer";
 
 const router = express.Router();
 
-
-const storage = multer.diskStorage({
-
-    destination: function(req, file, cb) {
-        cb(null, "uploads/");
-    },
-
-    filename: function(req, file, cb) {
-        cb(null, Date.now() + "-" + file.originalname);
-    }
-
-});
-
+// 1. Switch to memory storage so req.files contains the file buffers 
+// needed by your current controller setup.
+const storage = multer.memoryStorage();
 
 const upload = multer({
     storage,
-
     fileFilter: function(req, file, cb){
-
         const allowedTypes = [
             "image/jpeg",
             "image/png",
@@ -37,21 +25,19 @@ const upload = multer({
     }
 });
 
-
 router.post(
     '/create_measurement',
     upload.fields([
         {
-            name:"front_image",
-            maxCount:1
+            name: "front_image",
+            maxCount: 1
         },
         {
-            name:"side_image",
-            maxCount:1
+            name: "side_image",
+            maxCount: 1
         }
     ]),
     createMeasurementOrder
 );
-
 
 export default router;

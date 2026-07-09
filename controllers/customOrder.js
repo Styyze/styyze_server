@@ -2,6 +2,7 @@ import CustomOrder from '../models/CustomOrder.js';
 import axios from 'axios';
 import FormData from 'form-data';
 import fs from 'fs';
+import sharp from 'sharp';
 
 export const createMeasurementOrder = async (req, res, next) => {
     try {
@@ -9,21 +10,17 @@ export const createMeasurementOrder = async (req, res, next) => {
 
         const frontImage = req.files?.front_image?.[0];
         const sideImage = req.files?.side_image?.[0];
-         console.log("Front Image Details:");
+        console.log("Front Image Details:");
         console.log({
             filename: frontImage?.originalname,
             mimetype: frontImage?.mimetype,
-            path: frontImage?.path
         });
-
 
         console.log("Side Image Details:");
         console.log({
             filename: sideImage?.originalname,
             mimetype: sideImage?.mimetype,
-            path: sideImage?.path
         });
-
 
         // Validation
         if (!userId || !userHeightCm || !frontImage) {
@@ -32,7 +29,6 @@ export const createMeasurementOrder = async (req, res, next) => {
                 message: "Missing required fields: userId, userHeightCm, and front_image are mandatory."
             });
         }
-
 
         const AI_BASE_URL = 'https://styzze-ai-model.onrender.com';
 
@@ -45,41 +41,37 @@ export const createMeasurementOrder = async (req, res, next) => {
 
         console.log(`[AI Sync] Target Endpoint: ${targetEndpoint}`);
 
-
         // Create multipart form-data for FastAPI
-    const form = new FormData();
+        const form = new FormData();
 
-    form.append(
-    "front_image",
-    fs.createReadStream(frontImage.path),
-    {
-        filename: frontImage.originalname,
-        contentType: frontImage.mimetype
-    }
-           );
+        // 1. Optimize front image buffer
+        const frontImageBuffer = await sharp(frontImage.buffer)
+            .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
+            .jpeg({ quality: 80 }) 
+            .toBuffer();
 
+        form.append("front_image", frontImageBuffer, {
+            filename: 'front_image.jpg',
+            contentType: 'image/jpeg'
+        });
 
-    if (sideImage) {
-    form.append(
-        "side_image",
-        fs.createReadStream(sideImage.path),
-        {
-            filename: sideImage.originalname,
-            contentType: sideImage.mimetype
+        // 2. Optimize side image buffer if it exists
+        if (sideImage) {
+            const sideImageBuffer = await sharp(sideImage.buffer)
+                .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
+                .jpeg({ quality: 80 })
+                .toBuffer();
+
+            form.append("side_image", sideImageBuffer, {
+                filename: 'side_image.jpg',
+                contentType: 'image/jpeg'
+            });
         }
-    );
-}
-
-
-        form.append(
-            "height_cm",
-            Number(userHeightCm)
-        );
-
+        
+        form.append("height_cm", String(userHeightCm));
 
         // Health check
         await axios.get(`${AI_BASE_URL}/health`);
-
 
         // Send image files to AI service
         const aiResponse = await axios.post(
@@ -95,26 +87,55 @@ export const createMeasurementOrder = async (req, res, next) => {
             }
         );
 
-
         console.log("AI Response:", aiResponse.data);
 
+        // --- Hardcoded Testing Configuration ---
+        const fakeFrontImageUrl = "https://via.placeholder.com/1024x1024.png?text=Mock+Front+Image";
+        const fakeSideImageUrl = sideImage ? "https://via.placeholder.com/1024x1024.png?text=Mock+Side+Image" : null;
 
-        // Save order
+        // Save order structure to MongoDB
         const newOrder = new CustomOrder({
-            userId,
+            userId: userId,
             userHeightCm: Number(userHeightCm),
-
-            // Save local paths temporarily or replace with Cloudinary URLs later
-            frontImageUrl: frontImage.path,
-            sideImageUrl: sideImage ? sideImage.path : null,
-
-            ai_measurement_data: aiResponse.data,
-            status: 'completed'
+            frontImageUrl: fakeFrontImageUrl, // matched schema key
+            sideImageUrl: fakeSideImageUrl,   // matched schema key
+            status: "completed",              // matched enum choices ('pending', 'processing', 'completed', 'failed')
+            
+            // Nested object properties bundled exactly like the schema definition
+            ai_measurement_data: {
+                tool: aiResponse.data.tool,
+                status: aiResponse.data.status,
+                unit: aiResponse.data.unit || 'cm',
+                warnings: aiResponse.data.warnings || [],
+                measurements: {
+                    height: aiResponse.data.measurements?.height,
+                    shoulder_width: aiResponse.data.measurements?.shoulder_width,
+                    chest_width: aiResponse.data.measurements?.chest_width,
+                    chest_circumference: aiResponse.data.measurements?.chest_circumference,
+                    waist_width: aiResponse.data.measurements?.waist_width,
+                    waist: aiResponse.data.measurements?.waist,
+                    hip_width: aiResponse.data.measurements?.hip_width,
+                    hip: aiResponse.data.measurements?.hip,
+                    neck_width: aiResponse.data.measurements?.neck_width || null, // Safety default mapping
+                    neck: aiResponse.data.measurements?.neck,
+                    arm_length: aiResponse.data.measurements?.arm_length,
+                    sleeve_length: aiResponse.data.measurements?.sleeve_length,
+                    inseam: aiResponse.data.measurements?.inseam,
+                    outseam: aiResponse.data.measurements?.outseam,
+                    thigh: aiResponse.data.measurements?.thigh,
+                    calf: aiResponse.data.measurements?.calf,
+                    ankle: aiResponse.data.measurements?.ankle
+                },
+                metadata: {
+                    front_image_size: aiResponse.data.metadata?.front_image_size,
+                    side_image_size: aiResponse.data.metadata?.side_image_size,
+                    tailor_measurement_sets: aiResponse.data.metadata?.tailor_measurement_sets
+                }
+            }
         });
 
-
         const savedOrder = await newOrder.save();
-
+        // ----------------------------------------
 
         return res.status(201).json({
             success: true,
@@ -122,32 +143,18 @@ export const createMeasurementOrder = async (req, res, next) => {
             data: savedOrder
         });
 
-
     } catch (error) {
-
         if (error.response) {
-
-            console.error(
-                `[AI Service Error Status]: ${error.response.status}`
-            );
-
-            console.error(
-                `[AI Service Error Data]:`,
-                error.response.data
-            );
+            console.error(`[AI Service Error Status]: ${error.response.status}`);
+            console.error(`[AI Service Error Data]:`, error.response.data);
 
             return res.status(error.response.status).json({
-                success:false,
-                message:error.response.data
+                success: false,
+                message: error.response.data
             });
         }
 
-
-        console.error(
-            "Critical server controller exception:",
-            error
-        );
-
+        console.error("Critical server controller exception:", error);
         next(error);
     }
 };
