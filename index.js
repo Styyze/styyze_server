@@ -30,6 +30,14 @@ import verifyRoute from './routes/verifyUser.js';
 import createCartItemsrRoute from './routes/cart.js';
 import verifyPamentRoute from './routes/verifyPayment.js';
 import createMeasurementRoute from './routes/customOrder.js';
+import priceListRoute from './routes/pricelist.js';
+import projectRoute from './routes/project.js';
+import houseMembershipRoute from './routes/houseMembership.js';
+import acceptStaffInvitationRoute from './routes/acceptInvitation.js';
+import GarmentTypeRoute from './routes/garmentType.js';
+import quoteRoute from './routes/quote.js';
+
+
 dotenv.config();
 
 const app= express();
@@ -140,7 +148,14 @@ app.use("/api/products", allProductsRoute);
 app.use("/api/user", verifyRoute);
 app.use("/api/cart", createCartItemsrRoute);
 app.use("/api/payment", verifyPamentRoute);
-app.use("/api/customOrder", createMeasurementRoute);
+app.use("/api/", createMeasurementRoute);
+app.use("/api/", priceListRoute);
+app.use("/api/", projectRoute);
+app.use("/api/", houseMembershipRoute);
+app.use("/api/", acceptStaffInvitationRoute);
+app.use("/api/", GarmentTypeRoute);
+app.use("/api/", quoteRoute);
+
 
 
 

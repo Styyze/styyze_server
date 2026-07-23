@@ -26,7 +26,7 @@ const upload = multer({
 });
 
 router.post(
-    '/create_measurement',
+    '/measurements/analyze',
     upload.fields([
         {
             name: "front_image",
