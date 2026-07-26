@@ -79,29 +79,13 @@ export const createPriceList = async (req, res, next ) => {
 
 
 
-
-
-
-
-/**
- * Get House PriceList
- *
- * Used by House dashboard
- */
-export const getHousePriceList = async (
-    req,
-    res,
-    next
-)=>{
+export const getHousePriceList = async ( req, res, next)=>{
 
 
     try{
 
 
-        const houseId = req.userId;
-
-
-
+        const houseId = req.user.id;
         const priceList =
             await PriceList.find({
                 houseId
@@ -116,7 +100,7 @@ export const getHousePriceList = async (
 
             success:true,
 
-            priceList
+            data: priceList
 
         });
 
@@ -133,19 +117,7 @@ export const getHousePriceList = async (
 };
 
 
-
-
-
-
-
-/**
- * Get Single PriceList Item
- */
-export const getPriceListById = async (
-    req,
-    res,
-    next
-)=>{
+export const getPriceListById = async (req, res, next)=>{
 
 
     try{
@@ -154,7 +126,7 @@ export const getPriceListById = async (
         const price =
             await PriceList.findOne({
 
-                _id:req.params.id,
+                _id:req.params.pricelistId,
 
                 houseId:req.userId
 
@@ -194,17 +166,6 @@ export const getPriceListById = async (
 
 };
 
-
-
-
-
-
-
-/**
- * Update PriceList
- *
- * House can change pricing
- */
 export const updatePriceList = async (
     req,
     res,
@@ -221,8 +182,6 @@ export const updatePriceList = async (
             currency
         } = req.body;
 
-
-
         const price =
             await PriceList.findOne({
 
@@ -231,8 +190,6 @@ export const updatePriceList = async (
                 houseId:req.userId
 
             });
-
-
 
         if(!price){
 
@@ -266,11 +223,7 @@ export const updatePriceList = async (
 
         }
 
-
-
         await price.save();
-
-
 
         res.json({
 
@@ -283,8 +236,6 @@ export const updatePriceList = async (
 
         });
 
-
-
     }
 
     catch(error){
@@ -295,15 +246,6 @@ export const updatePriceList = async (
 
 };
 
-
-
-
-
-
-
-/**
- * Delete PriceList Item
- */
 export const deletePriceList = async (
     req,
     res,
@@ -314,8 +256,7 @@ export const deletePriceList = async (
     try{
 
 
-        const price =
-            await PriceList.findOneAndDelete({
+        const price = await PriceList.findOneAndDelete({
 
                 _id:req.params.id,
 
@@ -357,3 +298,4 @@ export const deletePriceList = async (
     }
 
 };
+
