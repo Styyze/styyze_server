@@ -24,6 +24,7 @@ const houseMembershipSchema = new Schema(
 
     role: {
         type:String,
+        enum: ['owner', 'staff'] ,
         required:true,
         
     },

@@ -1,6 +1,6 @@
 import express from "express";
 
-import { inviteStaff} from "../controllers/houseMembership.js";
+import { inviteStaff, createHouse} from "../controllers/houseMembership.js";
 
 
 import { protect } from '../middleware/auth.js';
@@ -8,7 +8,7 @@ import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-
+router.post("/houses/create", protect, createHouse);
 router.post( "/houses/staff/invite", protect, inviteStaff);
 
 
