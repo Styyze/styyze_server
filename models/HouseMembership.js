@@ -16,7 +16,7 @@ const houseMembershipSchema = new Schema(
 
     houseId: {
         type: Schema.Types.ObjectId,
-        ref: "User",
+        ref: "House",
         required:true,
         index:true
     },

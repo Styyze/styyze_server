@@ -181,3 +181,35 @@ export const inviteStaff = async (req, res, next) => {
     }
 
 };
+
+//get invitation
+export const getInvitations = async (req, res, next) => {
+    try {
+
+        // Logged-in user's ID
+        const userId = req.user.id;
+
+
+        // Find pending invitations for logged-in user
+        const invitations = await HouseMembership.find({
+            userId,
+            status: "invited"
+        })
+        .populate("houseId", "name description address phone email logo")
+        .populate("userId", "username email");
+
+
+        return res.status(200).json({
+            success: true,
+            message: "Invitations fetched successfully",
+            count: invitations.length,
+            invitations
+        });
+
+
+    } catch (error) {
+
+        next(error);
+
+    }
+};
