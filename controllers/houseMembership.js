@@ -36,7 +36,7 @@ if (existingHouseName){
 
         // Create the house
         const house = await House.create({
-            houseId: req.user.id,
+            ownerId: req.user.id,
             name,
             description,
             address,
