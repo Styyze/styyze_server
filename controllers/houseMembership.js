@@ -65,6 +65,35 @@ if (existingHouseName){
         next(error);
     }
 };
+//search house
+export const searchHouse = async (req, res, next) => {
+    try {
+        const { name } = req.query;
+
+        if (!name) {
+            return res.status(400).json({
+                success: false,
+                message: "House name is required."
+            });
+        }
+
+        const houses = await House.find({
+            name: {
+                $regex: name.trim(),
+                $options: "i" 
+            }
+        });
+
+        return res.status(200).json({
+            success: true,
+            count: houses.length,
+            data: houses
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
 
 export const inviteStaff = async (req, res, next) => {
 
