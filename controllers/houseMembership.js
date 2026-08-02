@@ -58,7 +58,7 @@ if (existingHouseName){
         return res.status(201).json({
             success: true,
             message: "House created successfully.",
-            house
+            data:house
         });
 
     } catch (error) {
