@@ -7,11 +7,11 @@ import { protect } from '../middleware/auth.js';
 
 
 const router = express.Router();
+router.get("/houses/name/search", protect, searchHouse);
 
 router.post("/houses/create", protect, createHouse);
 router.get("/houses/staff/invitation", protect, getInvitations);
 router.post( "/houses/staff/invite", protect, inviteStaff);
-router.get("/houses/search", protect, searchHouse);
 
 
 

@@ -2,6 +2,8 @@ import express from 'express'
 
 import {createUser,  UserLogin, reloadSession, logout } from '../controllers/auth.js'
 import {post} from '../controllers/posts.js'
+import { validate } from "../middleware/validate.js";
+import { createUserSchema } from "../validators/userValidator.js";
 
 import {searchPost} from '../controllers/searchPost.js'
 
@@ -9,7 +11,7 @@ import {searchPost} from '../controllers/searchPost.js'
 
 const router = express.Router();
 
-router.post('/sign_up', createUser); 
+router.post('/sign_up', validate(createUserSchema), createUser); 
 router.post('/posts', post);
 router.post('/userLogin',UserLogin)
 router.post('/refresh_token', post);

@@ -70,7 +70,9 @@ app.use(cors({
       'https://styyzeserver-production.up.railway.app',
       'https://styyze-ai-service-production.up.railway.app',
       'www.styyze.com',
-      'https://styyze.com'
+      'https://styyze.com',
+      'https://www.styyze.com'
+
     ];
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -118,7 +120,8 @@ const io = new Server(httpServer, {
             "https://live-stream-dy6l.onrender.com",
             "https://lively-dieffenbachia-377cfd.netlify.app",
             'www.styyze.com',
-           'https://styyze.com'
+           'https://styyze.com',
+           'https://www.styyze.com'
         ],
         methods: ["GET", "POST","PUT","DELETE", "PATCH","OPTIONS"],
         credentials: true
