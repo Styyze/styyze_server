@@ -1,5 +1,9 @@
 import mongoose from 'mongoose';
 
+const mediaSchema = new mongoose.Schema({
+    mediaUrl: { type: String, required: false },
+    mediaId: { type: String, required: false }
+});
 const UserProfileSchema = new mongoose.Schema({
     userId: {
   type: mongoose.Schema.Types.ObjectId,
@@ -25,11 +29,11 @@ const UserProfileSchema = new mongoose.Schema({
    
   },
   avatarUrl: {
-    type: String,
+    type:[mediaSchema],
     
   },
   coverPhotoUrl: {
-    type: String,
+    type:[mediaSchema],
     
   },
   location: {
