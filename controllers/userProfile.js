@@ -106,7 +106,6 @@ export const updateUserProfile = async (req, res, next) => {
             });
             
         }
-        console.log("bio error", error.details[0].message );
         // Perform the update
         const updatedUser = await UserProfile.findOneAndUpdate(
             {userId: userId}, 
