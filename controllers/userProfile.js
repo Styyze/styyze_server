@@ -99,10 +99,11 @@ export const updateUserProfile = async (req, res, next) => {
         if (error) {
             return res.status(400).json({ 
                 success: false, 
-                message: "bio error"
+                message: error.details[0].message 
             });
+            
         }
-        
+        console.log("bio error", error.details[0].message );
         // Perform the update
         const updatedUser = await UserProfile.findOneAndUpdate(
             {userId: userId}, 
