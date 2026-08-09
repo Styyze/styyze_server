@@ -14,14 +14,14 @@ const TapeMeasurementSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-    // Global unit specification 
+    // unit specification 
     unit: {
       type: String,
       enum: ['in', 'cm'],
       default: 'in',
     },
 
-    // TOP MEASUREMENTS 
+    // Top measurement
     topMeasurements: {
       chestBust: { type: Number, required: true },
       tummyWaist: { type: Number, required: true },
@@ -34,14 +34,21 @@ const TapeMeasurementSchema = new mongoose.Schema(
       wrist: { type: Number, default: null },
     },
 
-    // SLEEVE LENGTHS
+    // Sleeves lenght
     sleeveLengths: {
       longSleeveLength: { type: Number, default: null },
       threeQuarterSleeveLength: { type: Number, default: null },
       shortSleeveLength: { type: Number, default: null },
     },
+    // Sleeve measurement origin
+    sleeveMeasurementOrigin: {
+      type: String,
+      enum: ['shoulder tip', 'center of back'],
+      default: 'shoulder tip',
+    },
 
-    // TROUSER measurement
+
+    // trouser measurement
     trouserMeasurements: {
       waist: { type: Number },
       seatHips: { type: Number },

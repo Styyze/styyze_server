@@ -39,7 +39,8 @@ export const createTapeMeasurement = async (req, res) => {
     
     const measurementData = {
       userId,
-      houseId,
+      houseId: houseId,
+      sleeveMeasurementOrigin: sleeveMeasurementOrigin,
       unit: unit || 'in',
       topMeasurements: {
         chestBust: topMeasurements.chestBust,
