@@ -4,6 +4,7 @@ import UserProfile from "../models/UserProfile.js";
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
+import { OAuth2Client } from 'google-auth-library';
 
 // Register user
 
@@ -45,7 +46,135 @@ res.status(200).send(safeUser);
     console.log(err);
   }
 };
+// create user via google
 
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+
+export const googleSignUp = async (req, res, next) => {
+  try {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      return res.status(400).json({ error: "Google ID token is required" });
+    }
+
+    const ticket = await client.verifyIdToken({
+      idToken: idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name, picture } = payload;
+
+    const existingUser = await User.findOne({ 
+      $or: [{ email }, { googleId }] 
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ error: "User already exists with this email/Google account. Please log in." });
+    }
+
+    const generatedUsername = email.split('@')[0] + "_" + Math.random().toString(36).substring(2, 6);
+
+    const newUser = new User({
+      email,
+      name,
+      username: generatedUsername,
+      googleId: googleId,
+      profilePicture: picture,
+      authProvider: 'google', 
+    });
+
+    await newUser.save();
+
+    const joinedAt = newUser.createdAt;
+    const userProfile = new UserProfile({
+      userId: newUser._id,
+      username: newUser.username,
+      name: newUser.name,
+      joinedAt: joinedAt,
+    });
+
+    await userProfile.save();
+    console.log("User profile created via Google!");
+
+    newUser.userProfile = userProfile._id;
+    await newUser.save();
+
+    const { password, ...safeUser } = newUser.toObject();
+    return res.status(200).json(safeUser);
+
+  } catch (err) {
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyPattern)[0];
+      return res.status(400).send(`The ${field} already exists!`);
+    }
+    console.error("Google Sign-Up Error:", err);
+    return res.status(500).json({ error: "Internal server error during Google Sign-Up" });
+  }
+};
+
+
+// GOOGLE SIGN IN
+ 
+export const googleSignIn = async (req, res, next) => {
+  try {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      return res.status(400).json({ error: "Google ID token is required" });
+    }
+
+    const ticket = await client.verifyIdToken({
+      idToken: idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { sub: googleId, email } = payload;
+
+    const user = await User.findOne({ 
+      $or: [{ googleId }, { email }] 
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "No account found matching this Google login. Please sign up first." });
+    }
+
+    if (!user.googleId) {
+      user.googleId = googleId;
+      await user.save();
+    }
+
+    const token = jwt.sign(
+      {
+        id: user._id,
+        username: user.username,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    const { password, isAdmin, ...otherDetails } = user._doc || user.toObject();
+
+    res.cookie("access_token", token, {
+      httpOnly: true,
+      sameSite: "None",
+      secure: true,
+      maxAge: 3600000,
+      path: '/'
+    }).status(200).json({
+      details: { ...otherDetails, username: user.username, _id: user._id },
+      isAdmin: isAdmin || false,
+      access_token: token
+    });
+
+  } catch (err) {
+    console.error("Google Sign-In Error:", err);
+    return res.status(500).json({ error: "Internal server error during Google Sign-In" });
+  }
+};
 //Login
 
 

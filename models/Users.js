@@ -1,40 +1,49 @@
 import mongoose from 'mongoose';
 
 const UserSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true,
-      },
-      username: {
-        type: String,
-        required: true,
-        unique: true,
-      },
+  name: {
+    type: String,
+    required: true,
+  },
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   email: {
     type: String,
     required: true,
     unique: true,
-     match: [
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    "Please provide a valid email address",
-  ],
-
+    match: [
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      "Please provide a valid email address",
+    ],
   },
   password: {
     type: String,
-    required: true,
-    minlength: [8, "Password must be at least 8 characters long"],
-  },
-  userProfile: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'UserProfile', 
-        required: false 
+    required: function () {
+      return !this.googleId;
     },
-    verified: {
+    validate: {
+      validator: function (v) {
+        if (!v && this.googleId) return true; 
+        return v && v.length >= 8;
+      },
+      message: "Password must be at least 8 characters long",
+    },
+  },
+  googleId: { type: String, unique: true, sparse: true },
+  authProvider: { type: String, default: 'local' },
+  userProfile: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'UserProfile', 
+    required: false 
+  },
+  verified: {
     type: Boolean,
     default: false
   },
-    role: {
+  role: {
     type: String,
     enum: ['buyer', 'seller', 'admin'],
     default: 'buyer'
