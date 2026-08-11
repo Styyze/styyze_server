@@ -39,6 +39,12 @@ const houseSchema = new Schema(
       type: String,
       default: ""
     },
+username: {
+      type: String,
+      default: "",
+      required:true,
+      unique: true,
+    },
 
     logo: {
       type: String,
