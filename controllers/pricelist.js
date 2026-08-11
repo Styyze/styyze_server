@@ -71,9 +71,13 @@ export const createPriceList = async (req, res, next ) => {
 
     catch(error){
 
-        next(error);
+    console.error("Create Pricelist Error:", error);
 
-    }
+    return res.status(500).json({
+      success: false,
+      message: error.message
+
+    })}
 
 };
 
