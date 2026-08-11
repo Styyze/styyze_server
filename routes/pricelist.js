@@ -15,7 +15,7 @@ router.post('/houses/create/pricelist', protect, createPriceList);
 router.get('/houses/pricelist', protect, getHousePriceList)
 
 router.delete('/houses/price-list/:id/delete', protect, deletePriceList);
-router.get('/houses/:pricelistId', protect, getPriceListById );
+router.get('/house/get/pricelist/:pricelistId', protect, getPriceListById );
 
 router.patch('/houses/price-list/:id/update', protect, updatePriceList );
 
