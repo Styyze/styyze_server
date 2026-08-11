@@ -11,7 +11,7 @@ import {createPriceList,
 const router = express.Router();
 
 
-router.post('/houses/pricelist/create', protect, createPriceList);
+router.post('/houses/create/pricelist', protect, createPriceList);
 router.get('/houses/pricelist', protect, getHousePriceList)
 
 router.delete('/houses/price-list/:id/delete', protect, deletePriceList);
