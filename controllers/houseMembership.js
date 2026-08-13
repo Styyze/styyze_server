@@ -105,7 +105,6 @@ export const inviteStaff = async (req, res, next) => {
 
 
 
-        // The logged-in user represents the House
         const houseId = req.user.id;
 
 
@@ -119,9 +118,6 @@ export const inviteStaff = async (req, res, next) => {
 
         }
 
-
-
-        // Find staff user from search username
         const staffUser = await User.findOne({
             username
         });
@@ -138,8 +134,6 @@ export const inviteStaff = async (req, res, next) => {
         }
 
 
-
-        // Prevent owner from adding themselves
         if(staffUser._id.toString() === houseId.toString()){
 
             return res.status(400).json({
@@ -148,8 +142,6 @@ export const inviteStaff = async (req, res, next) => {
             });
 
         }
-
-        // Check duplicate membership
         const existingMembership =
             await HouseMembership.findOne({
 
@@ -169,8 +161,6 @@ export const inviteStaff = async (req, res, next) => {
             });
 
         }
-
-
 
 
         const membership =
@@ -215,11 +205,8 @@ export const inviteStaff = async (req, res, next) => {
 export const getInvitations = async (req, res, next) => {
     try {
 
-        // Logged-in user's ID
         const userId = req.user.id;
 
-
-        // Find pending invitations for logged-in user
         const invitations = await HouseMembership.find({
             userId,
             status: "invited"
@@ -241,4 +228,30 @@ export const getInvitations = async (req, res, next) => {
         next(error);
 
     }
+};
+
+// get staff of a House
+export const getHouseStaff = async (req, res) => {
+  try {
+    const { houseId } = req.params;
+
+    const staffMembers = await HouseMembership.find({
+      houseId,
+      role: "staff"
+    }).populate({
+      path: "userId",
+      select: "email username name"
+    });
+
+
+    return res.status(200).json({
+      success: true,
+      staff: staffMembers
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
 };

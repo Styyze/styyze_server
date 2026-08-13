@@ -22,7 +22,7 @@ export const post = async (req, res, next) => {
         
         await newPost.save();
 
-        // POPULATE details so receiving users know who posted it immediately
+        
         await newPost.populate({
             path: 'userId',
             select: 'name userProfile',
@@ -143,7 +143,6 @@ export const getPostsWithComments = async (req, res) => {
       comments: commentTrees.get(post._id.toString()) || []
     }));
 
-    // Optional: include pagination metadata
     const totalPosts = await Post.countDocuments();
     const totalPages = Math.ceil(totalPosts / limit);
 

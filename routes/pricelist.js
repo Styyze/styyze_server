@@ -12,7 +12,7 @@ const router = express.Router();
 
 
 router.post('/houses/create/pricelist', protect, createPriceList);
-router.get('/houses/pricelist', protect, getHousePriceList)
+router.get('/houses/fetch/:houseId/pricelist', protect, getHousePriceList)
 
 router.delete('/houses/price-list/:id/delete', protect, deletePriceList);
 router.get('/house/get/pricelist/:pricelistId', protect, getPriceListById );

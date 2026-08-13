@@ -1,13 +1,6 @@
 import PriceList from "../models/PriceList.js";
 
 
-
-/**
- * Create PriceList Entry
- *
- * House creates a fixed price
- * for a garment type.
- */
 export const createPriceList = async (req, res, next ) => {
 
     try {
@@ -20,7 +13,6 @@ export const createPriceList = async (req, res, next ) => {
 
 
 
-        // prevent duplicate pricing
 
         const existingPrice =
             await PriceList.findOne({
@@ -85,11 +77,12 @@ export const createPriceList = async (req, res, next ) => {
 
 export const getHousePriceList = async ( req, res, next)=>{
 
+    const { houseId } = req.params;
 
     try{
 
 
-        const houseId = req.user.id;
+        const houseId = houseId;
         const priceList =
             await PriceList.find({
                 houseId
