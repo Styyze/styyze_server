@@ -78,11 +78,11 @@ export const createPriceList = async (req, res, next ) => {
 export const getHousePriceList = async ( req, res, next)=>{
 
     const { houseId } = req.params;
-
+const userId= req.user.id;
     try{
 
 
-        const houseId = houseId;
+        
         const priceList =
             await PriceList.find({
                 houseId
@@ -106,9 +106,12 @@ export const getHousePriceList = async ( req, res, next)=>{
     }
 
     catch(error){
-
-        next(error);
-
+  console.error("Error fetchinh pricelist", error);
+        res.status(500).send({
+            success: false,
+            message: 'There was an error processing your request',
+            error: error.message,
+        });
     }
 
 };
