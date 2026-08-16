@@ -190,7 +190,25 @@ export const inviteStaff = async (req, res, next) => {
 
         });
 
+await createNotification({
+    recipientId: invitedUserId,
 
+    type: "staff_invite",
+
+    title: `You've been invited to join ${house.name}`,
+
+    body: `You've been invited to join ${house.name}`,
+
+    meta: {
+        houseId: house._id,
+        houseName: house.name,
+        invitedBy: req.user.id
+    },
+
+    actionUrl: null,
+
+    requiresAction: true
+});
     }
 
     catch(error){

@@ -8,6 +8,9 @@ import cookie from "cookie";
 import Message from './models/Message.js'; 
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
+import http from "http";
+import { initializeSocket } from "./websocket/socket.js";
+
 import loginRoute from './routes/auth.js';
 import registerRoute from './routes/auth.js';
 import usersRoute from './routes/users.js';
@@ -108,7 +111,9 @@ return res.status(errStatus).json({
 
 
 
-const httpServer = createServer(app);
+const httpServer = http.createServer(app);
+initializeSocket(httpServer);
+
 const PORT = process.env.PORT || 5000;
 
 const io = new Server(httpServer, {

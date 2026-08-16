@@ -105,6 +105,25 @@ export const paystackWebhook = async (req, res) => {
     }
 
     res.status(200).send("Webhook received");
+    await createNotification({
+    recipientId: house.houseId,
+
+    type: "payment_received",
+
+    title: `₦${amount} received for ${source}`,
+
+    body: `Payment of ₦${amount} has been received`,
+
+    meta: {
+        amount,
+        currency,
+        source,
+        orderId: order?._id,
+        projectId: project?._id
+    },
+
+    actionUrl: "/finance"
+});
 
   } catch (error) {
     console.error(error);

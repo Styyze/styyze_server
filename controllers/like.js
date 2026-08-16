@@ -51,6 +51,23 @@ const likeExists = Array.isArray(post.likes) && post.likes.some(like => like.use
             res.status(200).send({ message: "Post liked." });
             console.log("Liked!");
         }
+        await createNotification({
+    recipientId: post.userId,
+
+    type: "like",
+
+    title: `@${req.user.username} liked your Styyze`,
+
+    body: `@${req.user.username} liked your Styyze`,
+
+    meta: {
+        postId: post._id,
+        likerId: req.user.id,
+        likerName: req.user.username
+    },
+
+    actionUrl: `/post/${post._id}`
+});
     } catch (error) {
         console.error("Error toggling like:", error);
         res.status(500).send({ message: "Internal server error.", error: error.message });

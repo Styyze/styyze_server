@@ -57,7 +57,25 @@ const projectId= req.params.projectId;
             message: "Quotation sent successfully.",
             quote
         });
+await createNotification({
+    recipientId: project.userId,
 
+    type: "quote_sent",
+
+    title: `${house.name} sent a quote for your project`,
+
+    body: `${house.name} sent you a quote for your project`,
+
+    meta: {
+        projectId: project._id,
+        houseId: house._id,
+        houseName: house.name,
+        amount,
+        currency
+    },
+
+    actionUrl: `/profile/${project.userId}/orders`
+});
     } catch (error) {
         next(error);
     }
@@ -148,8 +166,41 @@ export const respondToQuotedPrice = async (req, res, next) => {
             message: `Quote ${response} successfully.`,
             quote
         });
+await createNotification({
+    recipientId: house.houseId,
 
+    type: "quote_accepted",
 
+    title: `@${customer.username} accepted your quote of ₦${amount}`,
+
+    body: `@${customer.username} accepted your quote`,
+
+    meta: {
+        projectId: project._id,
+        customerId: customer._id,
+        customerName: customer.username,
+        amount
+    },
+
+    actionUrl: "/projects"
+});
+await createNotification({
+    recipientId: house.houseId,
+
+    type: "quote_declined",
+
+    title: `@${customer.username} declined your quote`,
+
+    body: `@${customer.username} declined your quote`,
+
+    meta: {
+        projectId: project._id,
+        customerId: customer._id,
+        customerName: customer.username
+    },
+
+    actionUrl: "/projects"
+});
     } catch (error) {
         next(error);
     }

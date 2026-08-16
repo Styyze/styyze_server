@@ -21,6 +21,24 @@ export const postComments= async (req, res) => {
       parentCommentId: parentCommentId ? new mongoose.Types.ObjectId(parentCommentId) : null
     })
     await newComment.save();
+    await createNotification({
+    recipientId: post.userId,
+
+    type: "comment",
+
+    title: `@${req.user.username} commented on your post`,
+
+    body: comment.text,
+
+    meta: {
+        postId: post._id,
+        commentId: comment._id,
+        commenterName: req.user.username,
+        preview: comment.text
+    },
+
+    actionUrl: `/post/${post._id}`
+});
 console.log("commented successfully")
     res.status(201).json({ message: 'Comment saved successfully.', comment: newComment });
   } catch (error) {

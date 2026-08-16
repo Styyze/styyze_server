@@ -735,6 +735,25 @@ export const completeOrder = async (req, res) => {
       message: "Orders created successfully",
       orders: createdOrders
     });
+    await createNotification({
+    recipientId: house.houseId,
+
+    type: "order_placed",
+
+    title: `New order for ${product.name}`,
+
+    body: `You received a new order for ${product.name}`,
+
+    meta: {
+        orderId: order._id,
+        productId: product._id,
+        productName: product.name,
+        amount: order.amount,
+        currency: order.currency
+    },
+
+    actionUrl: "/products"
+});
 
   } catch (err) {
 

@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import UserProfile from '../models/UserProfile.js';
 import User from '../models/Users.js'
+import House from "../models/House.js";
+
 import { validateUpdateInput } from './validateUpdateInput.js';
 
 export const CreateUserProfile = async (req, res, next) => {
@@ -74,60 +76,72 @@ export const getUserProfile = async (req, res, next) => {
 };
 
 export const updateUserProfile = async (req, res, next) => {
-    const {userId}= req.body;
-    const authenticatedUserId = req.user.id; 
+    const { userId, name } = req.body;
+    const authenticatedUserId = req.user.id;
+
     try {
         // Authorization check
         if (userId.toString() !== authenticatedUserId.toString()) {
-            console.log("Unauthorized to update this profile." );
-            return res.status(403).json({ 
-                success: false, 
-                message: "Unauthorized to update this profile." 
+            console.log("Unauthorized to update this profile.");
+
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized to update this profile."
             });
         }
 
-        // Validate userId format
         if (!mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Invalid userId format." 
+            return res.status(400).json({
+                success: false,
+                message: "Invalid userId format."
             });
         }
 
-        // Input validation with Joi
         const { error } = validateUpdateInput(req.body);
 
         if (error) {
-            console.log("bio error", error.details[0].message );
+            console.log("bio error", error.details[0].message);
 
-            return res.status(400).json({ 
-                success: false, 
-                message: error.details[0].message 
+            return res.status(400).json({
+                success: false,
+                message: error.details[0].message
             });
-            
         }
-        // Perform the update
+
         const updatedUser = await UserProfile.findOneAndUpdate(
-            {userId: userId}, 
-            { $set: req.body }, 
+            { userId: userId },
+            { $set: req.body },
             { new: true }
         );
 
         if (!updatedUser) {
-            return res.status(404).json({ 
-                success: false, 
-                message: "User profile not found." 
+            return res.status(404).json({
+                success: false,
+                message: "User profile not found."
             });
         }
 
-        res.status(200).json({ 
-            success: true, 
-            message: "User profile updated successfully.", 
-            data: updatedUser 
+        if (name !== undefined) {
+
+            await User.findOneAndUpdate(
+                { _id: userId },
+                { $set: { name: name } }
+            );
+
+            await House.updateMany(
+                { ownerId: userId },
+                { $set: { name: name } }
+            );
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "User profile updated successfully.",
+            data: updatedUser
         });
 
     } catch (err) {
-        console.error("Error updating user profile:", err); 
-        next(err); 
+        console.error("Error updating user profile:", err);
+        next(err);
     }
 };

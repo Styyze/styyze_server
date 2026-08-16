@@ -122,7 +122,24 @@ export const createProject = async (req, res, next) => {
         });
 
 
-        
+        await createNotification({
+    recipientId: house.houseId,
+
+    type: "project_received",
+
+    title: `New ${project.garmentType} project from @${customer.username}`,
+
+    body: `You received a new project from @${customer.username}`,
+
+    meta: {
+        projectId: project._id,
+        customerId: customer._id,
+        customerName: customer.username,
+        garmentType: project.garmentType
+    },
+
+    actionUrl: "/projects"
+});
 
         if (pricing.source === "quote") {
 
@@ -260,23 +277,6 @@ export const getHouseProjects = async (
 
 
 
-
-
-
-/**
- * Update Project Status
- *
- * House lifecycle:
- * submitted
- * under_review
- * priced
- * accepted
- * declined
- * in_production
- * ready
- * delivered
- */
-// Allow transition
 const allowedTransitions = {
     submitted: [
         "under_review"
@@ -357,7 +357,25 @@ export const updateProjectStatus = async (
             success:true,
             project
         });
+await createNotification({
+    recipientId: project.userId,
 
+    type: "project_update",
+
+    title: `Your ${project.garmentType} project is now ${status}`,
+
+    body: `Your project status has changed to ${status}`,
+
+    meta: {
+        projectId: project._id,
+        houseId: house._id,
+        houseName: house.name,
+        garmentType: project.garmentType,
+        status
+    },
+
+    actionUrl: `/profile/${project.userId}/orders`
+});
 
     } catch(error){
 

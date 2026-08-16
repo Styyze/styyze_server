@@ -34,6 +34,23 @@ export const toggleFollow = async (req, res) => {
       });
       return res.status(200).json({ message: "Followed successfully." });
     }
+    await createNotification({
+    recipientId: followedUserId,
+
+    type: "follow",
+
+    title: `@${req.user.username} started following you`,
+
+    body: `@${req.user.username} started following you`,
+
+    meta: {
+        followerId: req.user.id,
+        followerName: req.user.username,
+        followerAvatar: req.user.avatar
+    },
+
+    actionUrl: `/profile/${req.user.id}`
+});
   } catch (error) {
     console.error("Toggle follow error:", error);
     return res.status(500).json({ message: "Internal server error." });
