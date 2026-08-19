@@ -2,7 +2,9 @@ import Project from "../models/Project.js";
 import PriceList from "../models/PriceList.js";
 import Product from "../models/Product.js";
 import Quote from "../models/Quote.js";
+import User from '../models/Users.js';
 
+import {createNotification } from './notificationServices.js';
 export const createProject = async (req, res, next) => {
     try {
 
@@ -121,9 +123,11 @@ export const createProject = async (req, res, next) => {
 
         });
 
+// send notification
+const customer = await User.findById(customerId).select("username name");
 
-        await createNotification({
-    recipientId: house.houseId,
+    await createNotification({
+    recipientId: houseId,
 
     type: "project_received",
 
@@ -182,9 +186,7 @@ export const createProject = async (req, res, next) => {
 
 
 
-/**
- * Get Customer Projects
- */
+//Get Customer Projects//
 export const getCustomerProjects = async (
     req,
     res,
@@ -343,20 +345,15 @@ export const updateProjectStatus = async (
             });
 
         }
-
-
-
         project.status = newStatus;
 
-
-        await project.save();
-
-
+await project.save();
 
         res.json({
             success:true,
             project
         });
+// send notification
 await createNotification({
     recipientId: project.userId,
 
