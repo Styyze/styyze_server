@@ -1,5 +1,7 @@
 import Quote from "../models/Quote.js";
 import Project from "../models/Project.js";
+import User from "../models/Users.js";
+import House from "../models/House.js";
 
 // House responds with a quotation
  
@@ -15,10 +17,10 @@ const projectId= req.params.projectId;
             });
         }
 
-        
+        const houseId= req.user.id;
         const quote = await Quote.findOne({
             projectId: projectId,
-            houseId: req.user.id
+            houseId: houseId
         });
 
         if (!quote) {
@@ -57,6 +59,9 @@ const projectId= req.params.projectId;
             message: "Quotation sent successfully.",
             quote
         });
+const customer = await User.findById(customerId).select("username name");
+const house= await House.findById(houseId).select("name");
+        
 await createNotification({
     recipientId: project.userId,
 
@@ -167,7 +172,7 @@ export const respondToQuotedPrice = async (req, res, next) => {
             quote
         });
 await createNotification({
-    recipientId: house.houseId,
+    recipientId: houseId,
 
     type: "quote_accepted",
 
@@ -185,7 +190,7 @@ await createNotification({
     actionUrl: "/projects"
 });
 await createNotification({
-    recipientId: house.houseId,
+    recipientId: houseId,
 
     type: "quote_declined",
 
