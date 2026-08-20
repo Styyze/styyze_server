@@ -239,13 +239,14 @@ export const getHouseProjects = async (
     res,
     next
 )=>{
-
+const houseId= req.user.id;
+console.log('houseId:', houseId);
     try{
 
 
         const projects =
             await Project.find({
-                houseId:req.user.id
+                houseId:houseId
             })
 
             .populate(
@@ -261,7 +262,7 @@ export const getHouseProjects = async (
 
         res.json({
             success:true,
-            projects
+            data:projects
         });
 
 
@@ -270,6 +271,7 @@ export const getHouseProjects = async (
     catch(error){
 
         next(error);
+        console.log("error", error)
 
     }
 
