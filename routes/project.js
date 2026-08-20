@@ -7,6 +7,6 @@ const router = express.Router();
 
 
 router.post('/projects', protect, createProject);
-router.get('/get/house/projects', getHouseProjects);
+router.get('/get/house/projects', protect, getHouseProjects);
 
 export default router
