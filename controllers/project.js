@@ -233,9 +233,7 @@ export const getCustomerProjects = async (
 
 
 
-/**
- * House Incoming Projects
- */
+//Get House projects
 export const getHouseProjects = async (
     req,
     res,
@@ -247,7 +245,7 @@ export const getHouseProjects = async (
 
         const projects =
             await Project.find({
-                houseId:req.userId
+                houseId:req.user.id
             })
 
             .populate(
