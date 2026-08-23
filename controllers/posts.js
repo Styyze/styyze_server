@@ -1,57 +1,206 @@
 // controllers/post.js
 import Post from '../models/Post.js';
 import mongoose from 'mongoose';
-import User from '../models/Users.js'
-
-import Comment from '../models/PostComments.js'
+import User from '../models/Users.js';
+import Product from '../models/Product.js';
+import Comment from '../models/PostComments.js';
 
 
 export const post = async (req, res, next) => {
-    try {
-        const { userId, caption,  location, brandsTagged, media, tags, clientId } = req.body;
-        console.log(clientId);
 
-        const newPost = new Post({
+    try {
+
+        const {
             userId,
-            media,
             caption,
             location,
+            brandsTagged,
+            media,
             tags,
-            brandsTagged
+            productsTagged,
+            clientId
+        } = req.body;
+
+        console.log("Client ID:", clientId);
+
+
+        let formattedProductsTagged = [];
+
+
+        if (
+            productsTagged &&
+            Array.isArray(productsTagged) &&
+            productsTagged.length > 0
+        ) {
+
+
+
+
+            const productIds = productsTagged.map(
+                product => product.productId
+            );
+
+            const invalidProductIds = productIds.filter(
+                id => !mongoose.Types.ObjectId.isValid(id)
+            );
+
+
+            if (invalidProductIds.length > 0) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: "One or more product IDs are invalid.",
+                    invalidProductIds
+                });
+
+            }
+
+
+
+            const products = await Product.find({
+                _id: {
+                    $in: productIds
+                }
+            });
+
+
+            if (products.length !== productIds.length) {
+
+                const foundProductIds = products.map(
+                    product => product._id.toString()
+                );
+
+
+                const missingProductIds =
+                    productIds.filter(
+                        id =>
+                            !foundProductIds.includes(
+                                id.toString()
+                            )
+                    );
+
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "One or more tagged products were not found.",
+                    missingProductIds
+                });
+
+            }
+
+            formattedProductsTagged = products.map(
+                product => ({
+
+                    productId: product._id,
+
+                    title: product.title,
+
+          
+                    price: product.price,
+
+                    currency: product.currency,
+
+                    media: product.media,
+
+                    seller: product.seller,
+
+                    category: product.category
+
+                })
+            );
+
+        }
+
+
+        const newPost = new Post({
+
+            userId,
+
+            media,
+
+            caption,
+
+            location,
+
+            tags,
+
+            brandsTagged,
+
+            productsTagged: formattedProductsTagged
+
         });
-        
+
+
         await newPost.save();
 
-        
+
+
         await newPost.populate({
+
             path: 'userId',
+
             select: 'name userProfile',
+
             model: 'User',
+
             populate: {
+
                 path: 'userProfile',
+
                 model: 'UserProfile',
+
                 select: 'avatarUrl username'
+
             }
+
         });
 
-       
-        req.io.emit('new_post', newPost);
+        req.io.emit(
+            'new_post',
+            newPost
+        );
 
-        console.log(`New post created by userId: ${userId} and broadcasted globally.`);
+
+        console.log(
+            `New post created by userId: ${userId} and broadcasted globally.`
+        );
+
 
         res.status(200).send({
+
             success: true,
-            message: "Post successfully saved!",
+
+            message:
+                "Post successfully saved!",
+
             data: newPost
+
         });
+
+
     } catch (err) {
-        console.error("Error saving post", err);
+
+        console.error(
+            "Error saving post",
+            err
+        );
+
+
         res.status(500).send({
+
             success: false,
-            message: 'There was an error processing your request',
-            error: err.message,
+
+            message:
+                'There was an error processing your request',
+
+            error:
+                err.message
+
         });
+
     }
+
 };
 
   // Build nested comment trees grouped by postId
