@@ -65,6 +65,7 @@ if (existingHouseName){
 
     } catch (error) {
         next(error);
+        console.log("error", error);
     }
 };
 //search house
