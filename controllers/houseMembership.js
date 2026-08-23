@@ -12,6 +12,7 @@ export const createHouse = async (req, res, next) => {
             address,
             phone,
             email,
+            username,
             logo
         } = req.body;
 // check if a house name already exist
@@ -42,6 +43,7 @@ if (existingHouseName){
             address,
             phone,
             email,
+            username,
             logo
         });
 
