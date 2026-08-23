@@ -15,6 +15,7 @@ export const createHouse = async (req, res, next) => {
             username,
             logo
         } = req.body;
+        console.log("username", username);
 // check if a house name already exist
 const existingHouseName= await House.findOne({name: name.toLowerCase()})
 if (existingHouseName){
