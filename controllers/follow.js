@@ -3,7 +3,6 @@ import User from '../models/Users.js';
 
 export const toggleFollow = async (req, res) => {
   const { targetUserProfileId, followerUserId } = req.body;
-  console.log('targetId', targetUserProfileId)
 
   if (!targetUserProfileId || !followerUserId) {
     return res.status(400).json({ message: "Missing required fields." });
@@ -34,19 +33,21 @@ export const toggleFollow = async (req, res) => {
       });
       return res.status(200).json({ message: "Followed successfully." });
     }
+    const user = await User.findById(followerUserId).select("username name");
+    const userAvatar= await UserProfile.findOne({userId: followerUserId});
     await createNotification({
-    recipientId: followedUserId,
+    recipientId: targetUserProfileId,
 
     type: "follow",
 
-    title: `@${req.user.username} started following you`,
+    title: `@${user.username} started following you`,
 
-    body: `@${req.user.username} started following you`,
+    body: `@${user.username} started following you`,
 
     meta: {
-        followerId: req.user.id,
-        followerName: req.user.username,
-        followerAvatar: req.user.avatar
+        followerId: user._id,
+        followerName: user.username,
+        followerAvatar: userAvatar.avatarUrl
     },
 
     actionUrl: `/profile/${req.user.id}`

@@ -63,7 +63,7 @@ const customer = await User.findById(customerId).select("username name");
 const house= await House.findById(houseId).select("name");
         
 await createNotification({
-    recipientId: project.userId,
+    recipientId: project.customerId,
 
     type: "quote_sent",
 
@@ -172,11 +172,11 @@ export const respondToQuotedPrice = async (req, res, next) => {
             quote
         });
 await createNotification({
-    recipientId: houseId,
+    recipientId: project.houseId,
 
     type: "quote_accepted",
 
-    title: `@${customer.username} accepted your quote of ₦${amount}`,
+    title: `@${customer.username} accepted your quote of ₦${quote.amount}`,
 
     body: `@${customer.username} accepted your quote`,
 
@@ -190,7 +190,7 @@ await createNotification({
     actionUrl: "/projects"
 });
 await createNotification({
-    recipientId: houseId,
+    recipientId: project.houseId,
 
     type: "quote_declined",
 

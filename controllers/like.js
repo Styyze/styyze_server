@@ -4,7 +4,6 @@ import User from '../models/Users.js'
 
 export const like = async (req, res, next) => {
     const { postId, userId } = req.body;
-    console.log("userId:",userId);
 
     // Validate input
     if (!postId || !userId) {
@@ -51,19 +50,21 @@ const likeExists = Array.isArray(post.likes) && post.likes.some(like => like.use
             res.status(200).send({ message: "Post liked." });
             console.log("Liked!");
         }
+  const user = await User.findById(userId).select("username name");
+    
         await createNotification({
     recipientId: post.userId,
 
     type: "like",
 
-    title: `@${req.user.username} liked your Styyze`,
+    title: `@${user.username} liked your Styyze`,
 
-    body: `@${req.user.username} liked your Styyze`,
+    body: `@${user.username} liked your Styyze`,
 
     meta: {
         postId: post._id,
-        likerId: req.user.id,
-        likerName: req.user.username
+        likerId: user._id,
+        likerName: user.username
     },
 
     actionUrl: `/post/${post._id}`
