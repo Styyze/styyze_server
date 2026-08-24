@@ -50,21 +50,21 @@ const likeExists = Array.isArray(post.likes) && post.likes.some(like => like.use
             res.status(200).send({ message: "Post liked." });
             console.log("Liked!");
         }
-  const user = await User.findById(userId).select("username name");
+  const userB = await User.findById(userId).select("username name");
     
         await createNotification({
     recipientId: post.userId,
 
     type: "like",
 
-    title: `@${user.username} liked your Styyze`,
+    title: `@${userB.username} liked your Styyze`,
 
-    body: `@${user.username} liked your Styyze`,
+    body: `@${userB.username} liked your Styyze`,
 
     meta: {
         postId: post._id,
-        likerId: user._id,
-        likerName: user.username
+        likerId: userB._id,
+        likerName: userB.username
     },
 
     actionUrl: `/post/${post._id}`
