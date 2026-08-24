@@ -2,6 +2,7 @@ import Quote from "../models/Quote.js";
 import Project from "../models/Project.js";
 import User from "../models/Users.js";
 import House from "../models/House.js";
+import {createNotification } from './notificationServices.js';
 
 // House responds with a quotation
  

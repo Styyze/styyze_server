@@ -1,5 +1,7 @@
 import UserProfile from '../models/UserProfile.js';
 import User from '../models/Users.js';
+import {createNotification } from './notificationServices.js';
+
 
 export const toggleFollow = async (req, res) => {
   const { targetUserProfileId, followerUserId } = req.body;

@@ -1,6 +1,7 @@
 import Post from '../models/Post.js';
 import mongoose from 'mongoose';
 import User from '../models/Users.js'
+import {createNotification } from './notificationServices.js';
 
 export const like = async (req, res, next) => {
     const { postId, userId } = req.body;
@@ -52,7 +53,7 @@ const likeExists = Array.isArray(post.likes) && post.likes.some(like => like.use
         }
   const userB = await User.findById(userId).select("username name");
     
-        await createNotification({
+await createNotification({
     recipientId: post.userId,
 
     type: "like",
