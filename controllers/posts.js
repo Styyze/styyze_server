@@ -342,7 +342,7 @@ export const getPostById = async (req, res, next) => {
     if (!post) {
       return res.status(404).json({
         success: false,
-        message: "Post not found"
+        data: []
       });
     }
 
@@ -396,7 +396,7 @@ export const getUserPosts= async(req, res, next)=>{
         if (posts.length === 0) {
             return res.status(404).json({
                 success: true,
-                data: {}
+                data: []
             });
             }
             res.status(200).json({

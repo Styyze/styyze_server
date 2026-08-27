@@ -58,12 +58,14 @@ const ProductSchema = new mongoose.Schema(
     },
 
     size: {
-      type: String,
+      type: [String],
+      default:[],
       trim: true
     },
 
     color: {
-      type: String,
+      type: [String],
+      default:[],
       trim: true
     },
 

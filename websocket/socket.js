@@ -82,7 +82,7 @@ export const initializeSocket = (server) => {
 
         
         console.log(
-            "SOCKET CONNECTED"
+            "SOCKET CONNECTED from socket.io"
         );
 
         console.log(

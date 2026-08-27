@@ -126,7 +126,7 @@ export const getCartByUserId = async (req, res) => {
     if (!cart) {
       return res.status(404).json({
         success: false,
-        message: "Cart not found"
+        data:[] 
       });
     }
 
