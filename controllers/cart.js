@@ -124,8 +124,8 @@ export const getCartByUserId = async (req, res) => {
       });
 
     if (!cart) {
-      return res.status(404).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
         data:[] 
       });
     }
@@ -205,7 +205,6 @@ export const updateCartItem = async (req, res) => {
   try {
     const { cartId, productId } = req.params;
     const { quantity } = req.body;
-console.log('productId',productId);
     const userId = req.user.id; 
 
     // Validate ObjectIds

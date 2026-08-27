@@ -340,8 +340,8 @@ export const getPostById = async (req, res, next) => {
       .lean();
 
     if (!post) {
-      return res.status(404).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
         data: []
       });
     }
@@ -394,7 +394,7 @@ export const getUserPosts= async(req, res, next)=>{
         const posts = await Post.find({ userId: userId }); 
 
         if (posts.length === 0) {
-            return res.status(404).json({
+            return res.status(200).json({
                 success: true,
                 data: []
             });
@@ -432,7 +432,7 @@ export const getUsersWhoLikedPost = async (req, res)=> {
             .select('likes'); 
 
         if (!post) {
-            return res.status(404).json({ message: 'Post not found' });
+            return res.status(200).json({ data: [] });
         }
 
         // Format the response
@@ -468,15 +468,18 @@ export const updatePost = async (req, res, next) => {
         );
 
         if (!updatedPost) {
-            return res.status(404).send({
-                success: false,
-                message: "Post not found",
+            return res.status(200).send({
+                success: true,
+                data: [],
             });
         }
 
- req.io.to(clientId).emit('post updated', updatedPost);
- 
-        console.log(`Post updated: ${postId}`);
+const io = getIO();
+
+io.to(clientId).emit(
+    "post updated",
+    updatedPost
+); 
 
         res.status(200).send({
             success: true,
