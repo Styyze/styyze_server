@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import User from '../models/Users.js';
 import Product from '../models/Product.js';
 import Comment from '../models/PostComments.js';
+import { getIO } from "../websocket/socket.js";
 
 
 export const post = async (req, res, next) => {
@@ -156,10 +157,12 @@ export const post = async (req, res, next) => {
 
         });
 
-        req.io.emit(
-            'new_post',
-            newPost
-        );
+const io = getIO();
+
+io.emit(
+    'new_post',
+    newPost
+);
 
 
         console.log(

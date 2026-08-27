@@ -11,7 +11,8 @@ export const createNotification = async ({
     requiresAction = false
 }) => {
 
-    // Always save notification
+   
+
     const notification = await Notification.create({
         recipientId,
         type,
@@ -23,26 +24,114 @@ export const createNotification = async ({
         actionResolved: false,
         read: false
     });
- try {
+
+    console.log("======================================");
+    console.log("NOTIFICATION CREATED");
+    console.log("Notification ID:", notification._id.toString());
+    console.log("Recipient ID:", recipientId.toString());
+    console.log("Notification type:", type);
+
+
+    // ==========================================
+    // REAL-TIME SOCKET NOTIFICATION
+    // ==========================================
+
+    try {
+
         const io = getIO();
 
-        io.to(`user_${recipientId.toString()}`).emit(
+        if (!io) {
+            console.error(
+                "❌ Socket.IO instance is not available."
+            );
+
+            return notification;
+        }
+
+        console.log(
+            "✅ Socket.IO instance obtained."
+        );
+
+
+        // ==========================================
+        // DETERMINE RECIPIENT ROOM
+        // ==========================================
+
+        const room = `user_${recipientId.toString()}`;
+
+        console.log(
+            "Notification room:",
+            room
+        );
+
+
+        // ==========================================
+        // CHECK SOCKETS IN THE ROOM
+        // ==========================================
+
+        const socketsInRoom = await io
+            .in(room)
+            .fetchSockets();
+
+        console.log(
+            `Sockets in ${room}:`,
+            socketsInRoom.length
+        );
+
+
+        if (socketsInRoom.length === 0) {
+
+            console.warn(
+                `⚠️ No connected sockets found in room: ${room}`
+            );
+
+        } else {
+
+            console.log(
+                `✅ Found ${socketsInRoom.length} socket(s) in room.`
+            );
+
+            socketsInRoom.forEach((socket) => {
+
+                console.log(
+                    "Socket ID:",
+                    socket.id
+                );
+
+            });
+        }
+
+
+        // ==========================================
+        // EMIT NOTIFICATION
+        // ==========================================
+
+        console.log(
+            `📡 Emitting notification:new to ${room}`
+        );
+
+        io.to(room).emit(
             "notification:new",
             notification
         );
 
-    } catch (error) {
-        console.error(
-            "Real-time notification delivery failed:",
-            error.message
+        console.log(
+            `✅ notification:new emitted to ${room}`
         );
 
+        console.log("======================================");
 
 
+    } catch (error) {
 
-        
+        console.error(
+            "❌ Real-time notification delivery failed:"
+        );
+
+        console.error(error);
+
     }
 
-    return notification;
 
+    return notification;
 };

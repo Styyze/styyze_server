@@ -6,76 +6,166 @@ import {createNotification } from './notificationServices.js';
 export const like = async (req, res, next) => {
     const { postId, userId } = req.body;
 
-    // Validate input
+    
     if (!postId || !userId) {
-        return res.status(400).send({ message: "Missing postId or userId." });
+        return res.status(400).json({
+            message: "Missing postId or userId."
+        });
     }
 
     try {
-        // Validate ObjectIds
-        if (!mongoose.Types.ObjectId.isValid(postId) || !mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(400).send({ message: "Invalid postId or userId." });
+
+        if (
+            !mongoose.Types.ObjectId.isValid(postId) ||
+            !mongoose.Types.ObjectId.isValid(userId)
+        ) {
+            return res.status(400).json({
+                message: "Invalid postId or userId."
+            });
         }
 
-        // Check if user exists
-        const user = await User.findById(userId);
+
+        const user = await User.findById(userId)
+            .select("_id username name");
+
         if (!user) {
-            return res.status(404).send({ message: "User not found." });
+            return res.status(404).json({
+                message: "User not found."
+            });
         }
 
-        // Find the post
         const post = await Post.findById(postId);
+
         if (!post) {
-            return res.status(404).send({ message: "Post not found." });
+            return res.status(404).json({
+                message: "Post not found."
+            });
         }
 
-        // Check if user already liked the post
-const likeExists = Array.isArray(post.likes) && post.likes.some(like => like.userId.toString() === userId.toString());
+        const likeExists =
+            Array.isArray(post.likes) &&
+            post.likes.some(
+                like =>
+                    like.userId &&
+                    like.userId.toString() === userId.toString()
+            );
+
 
         if (likeExists) {
-            // Unlike: Remove userId from likes array and decrement likeCount
-            await Post.findByIdAndUpdate(postId, {
-                $pull: { likes: { userId } },
-                $inc: { likeCount: -1 }
-            });
-            res.status(200).send({ message: "Post unliked." });
-        } else {
-            // Like: Add userId to likes array and increment likeCount
-            await Post.findByIdAndUpdate(postId, {
-                $push: { likes: { userId:user._id,
-                    name: user.name,
-                    username: user.username
-                 } },
-                $inc: { likeCount: 1 }
-            });
-            res.status(200).send({ message: "Post liked." });
-            console.log("Liked!");
-        }
-  const userB = await User.findById(userId).select("username name");
+
+            await Post.findByIdAndUpdate(
+                postId,
+                {
+                    $pull: {
+                        likes: {
+                            userId: user._id
+                        }
+                    },
+                    $inc: {
+                        likeCount: -1
+                    }
+                }
+            );
+
+            console.log(
+                `Post ${postId} unliked by user ${userId}`
+            );
+
     
-await createNotification({
-    recipientId: post.userId,
+            return res.status(200).json({
+                message: "Post unliked.",
+                liked: false
+            });
+        }
 
-    type: "like",
+        await Post.findByIdAndUpdate(
+            postId,
+            {
+                $push: {
+                    likes: {
+                        userId: user._id,
+                        name: user.name,
+                        username: user.username
+                    }
+                },
+                $inc: {
+                    likeCount: 1
+                }
+            }
+        );
 
-    title: `@${userB.username} liked your Styyze`,
+        console.log(
+            `Post ${postId} liked by user ${userId}`
+        );
 
-    body: `@${userB.username} liked your Styyze`,
 
-    meta: {
-        postId: post._id,
-        likerId: userB._id,
-        likerName: userB.username
-    },
+        if (
+            post.userId &&
+            post.userId.toString() !== user._id.toString()
+        ) {
 
-    actionUrl: `/post/${post._id}`
-});
+            console.log("======================================");
+            console.log("CREATING LIKE NOTIFICATION");
+            console.log("Post ID:", post._id.toString());
+            console.log("Post Owner:", post.userId.toString());
+            console.log("Liker ID:", user._id.toString());
+            console.log("Liker Username:", user.username);
+            console.log(
+                "Notification Room:",
+                `user_${post.userId.toString()}`
+            );
+            console.log("======================================");
+
+
+            await createNotification({
+
+                recipientId: post.userId,
+
+                type: "like",
+
+                title: `@${user.username} liked your Styyze`,
+
+                body: `@${user.username} liked your Styyze`,
+                meta: {
+                    postId: post._id,
+                    likerId: user._id,
+                    likerName: user.username
+                },
+
+                actionUrl: `/post/${post._id}`
+            });
+
+
+            console.log(
+                "Like notification created successfully."
+            );
+
+        } else {
+
+            console.log(
+                "User liked their own post. No notification created."
+            );
+        }
+
+        return res.status(200).json({
+            message: "Post liked.",
+            liked: true
+        });
+
+
     } catch (error) {
-        console.error("Error toggling like:", error);
-        res.status(500).send({ message: "Internal server error.", error: error.message });
+
+        console.error(
+            "Error toggling like:",
+            error
+        );
+
+        return res.status(500).json({
+            message: "Internal server error.",
+            error: error.message
+        });
     }
 };
-
 export const getAllLike = async (req, res, next) => {
 
     const { postId } = req.query;
