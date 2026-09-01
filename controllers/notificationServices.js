@@ -11,8 +11,6 @@ export const createNotification = async ({
     requiresAction = false
 }) => {
 
-   
-
     const notification = await Notification.create({
         recipientId,
         type,
@@ -109,6 +107,12 @@ export const createNotification = async ({
         console.log(
             `📡 Emitting notification:new to ${room}`
         );
+
+        // 🔍 LOG THE WEBSOCKET DATA SENT TO CLIENT
+        console.log("======================================");
+        console.log("WEBSOCKET PAYLOAD (notification:new):");
+        console.dir(notification.toObject ? notification.toObject() : notification, { depth: null, colors: true });
+        console.log("======================================");
 
         io.to(room).emit(
             "notification:new",
