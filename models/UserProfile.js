@@ -39,6 +39,10 @@ const UserProfileSchema = new mongoose.Schema({
   location: {
     type: String,
   },
+  verified: {
+  type: Boolean,
+  default: false
+},
   joinedAt: {
     type: String,
   },
