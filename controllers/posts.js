@@ -260,13 +260,13 @@ export const getPostsWithComments = async (req, res) => {
         populate: {
           path: 'userProfile',
           model: 'UserProfile',
-          select: 'avatarUrl username'
+          select: 'avatarUrl username verified'
         }
       })
       .populate({
         path: 'userProfile',
         model: 'UserProfile',
-        select: 'avatarUrl name username'
+        select: 'avatarUrl name username verified'
       })
       .lean();
 
@@ -281,7 +281,7 @@ export const getPostsWithComments = async (req, res) => {
         populate: {
           path: 'userProfile',
           model: 'UserProfile',
-          select: 'avatarUrl name'
+          select: 'avatarUrl name verified'
         }
       })
       .lean();
