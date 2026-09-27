@@ -67,6 +67,36 @@ if (existingHouseName){
         next(error);
     }
 };
+
+// get house
+
+// Get the house owned by the logged-in user
+export const houseVerificationStatus = async (req, res, next) => {
+    try {
+        const ownerId = req.user.id;
+
+        const house = await House.findOne({
+            ownerId
+        });
+
+        if (!house) {
+            return res.status(200).json({
+                success: true,
+                message: "You do not own a house.",
+                data:null
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "House fetched successfully.",
+            data: house
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
 //search house
 export const searchHouse = async (req, res, next) => {
     try {

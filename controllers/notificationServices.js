@@ -51,10 +51,7 @@ export const createNotification = async ({
         );
 
 
-        // ==========================================
-        // DETERMINE RECIPIENT ROOM
-        // ==========================================
-
+        
         const room = `user_${recipientId.toString()}`;
 
         console.log(
@@ -63,9 +60,7 @@ export const createNotification = async ({
         );
 
 
-        // ==========================================
-        // CHECK SOCKETS IN THE ROOM
-        // ==========================================
+        
 
         const socketsInRoom = await io
             .in(room)
@@ -80,13 +75,13 @@ export const createNotification = async ({
         if (socketsInRoom.length === 0) {
 
             console.warn(
-                `⚠️ No connected sockets found in room: ${room}`
+                ` No connected sockets found in room: ${room}`
             );
 
         } else {
 
             console.log(
-                `✅ Found ${socketsInRoom.length} socket(s) in room.`
+                `Found ${socketsInRoom.length} socket(s) in room.`
             );
 
             socketsInRoom.forEach((socket) => {
@@ -100,12 +95,9 @@ export const createNotification = async ({
         }
 
 
-        // ==========================================
-        // EMIT NOTIFICATION
-        // ==========================================
-
+        
         console.log(
-            `📡 Emitting notification:new to ${room}`
+            ` Emitting notification:new to ${room}`
         );
 
         // 🔍 LOG THE WEBSOCKET DATA SENT TO CLIENT
@@ -120,16 +112,15 @@ export const createNotification = async ({
         );
 
         console.log(
-            `✅ notification:new emitted to ${room}`
+            ` notification:new emitted to ${room}`
         );
 
-        console.log("======================================");
 
 
     } catch (error) {
 
         console.error(
-            "❌ Real-time notification delivery failed:"
+            "Real-time notification delivery failed:"
         );
 
         console.error(error);
@@ -138,4 +129,33 @@ export const createNotification = async ({
 
 
     return notification;
+};
+
+// get notifications
+
+
+export const getUserNotifications = async (req, res) => {
+    try {
+        const recipientId = req.user.id;
+
+        const notifications = await Notification.find({
+            recipientId
+        })
+            .sort({ createdAt: -1 });
+
+        return res.status(200).json({
+            success: true,
+            count: notifications.length,
+            notifications
+        });
+
+    } catch (error) {
+        console.error("Error fetching notifications:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error.",
+            error: error.message
+        });
+    }
 };

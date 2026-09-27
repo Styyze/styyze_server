@@ -38,6 +38,7 @@ import acceptStaffInvitationRoute from "./routes/acceptInvitation.js";
 import GarmentTypeRoute from "./routes/garmentType.js";
 import quoteRoute from "./routes/quote.js";
 import tapeMeasurementRoute from "./routes/tapeMeasurement.js";
+import  notificationRoute from "./routes/notifications.js";
 
 
 
@@ -223,7 +224,7 @@ app.use("/api/", GarmentTypeRoute);
 app.use("/api/", quoteRoute);
 
 app.use("/api/", tapeMeasurementRoute);
-
+app.use("/api/", notificationRoute);
 
 
 app.use((req, res) => {
