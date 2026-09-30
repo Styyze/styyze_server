@@ -10,7 +10,9 @@ import { createTapeMeasurement, getTapeMeasurement } from "../controllers/tapeMe
 const router = express.Router();
 
 router.post("/measurements/tape", protect, createTapeMeasurement);
-router.get("/measurement/user/tape", protect, getTapeMeasurement);
+router.get("/measurement/user/tape", protect, getTapeMeasurement
+    
+);
 
 
 
