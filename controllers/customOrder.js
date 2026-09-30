@@ -89,19 +89,15 @@ export const createMeasurementOrder = async (req, res, next) => {
 
         console.log("AI Response:", aiResponse.data);
 
-        // --- Hardcoded Testing Configuration ---
         const fakeFrontImageUrl = "https://via.placeholder.com/1024x1024.png?text=Mock+Front+Image";
         const fakeSideImageUrl = sideImage ? "https://via.placeholder.com/1024x1024.png?text=Mock+Side+Image" : null;
 
-        // Save order structure to MongoDB
         const newOrder = new CustomOrder({
             userId: userId,
             userHeightCm: Number(userHeightCm),
-            frontImageUrl: fakeFrontImageUrl, // matched schema key
-            sideImageUrl: fakeSideImageUrl,   // matched schema key
-            status: "completed",              // matched enum choices ('pending', 'processing', 'completed', 'failed')
-            
-            // Nested object properties bundled exactly like the schema definition
+            frontImageUrl: fakeFrontImageUrl, 
+            sideImageUrl: fakeSideImageUrl,   
+            status: "completed",              
             ai_measurement_data: {
                 tool: aiResponse.data.tool,
                 status: aiResponse.data.status,

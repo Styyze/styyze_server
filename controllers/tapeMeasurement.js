@@ -19,7 +19,8 @@ export const createTapeMeasurement = async (req, res) => {
       sleeveLengths,
       trouserMeasurements,
       capMeasurements, 
-      houseId
+      houseId,
+      sleeveMeasurementOrigin
     } = req.body;
 
    
@@ -106,3 +107,29 @@ export const createTapeMeasurement = async (req, res) => {
     });
   }
 };
+
+//get user tape measurement
+export const getTapeMeasurement = async (req, res) => {
+   try { 
+    const userId = req.user?.id;
+     if (!userId) {
+       return res.status(400).json({ success: false, message: 'User ID is required.', });
+       }
+   const measurement = await TapeMeasurement.findOne({ userId }); 
+   if (!measurement) { 
+    return res.status(20).json({ success: true,
+       message: 'Tape measurement not found.', 
+       data:[]
+      
+      }); }
+     return res.status(200).json({ 
+      success: true,
+      message: 'Tape measurement retrieved successfully.',
+      data: measurement, }); } 
+       catch (error) { 
+        return res.status(500).json({ 
+        success: false, 
+        message: 'Server Error. Could not retrieve tape measurement.', 
+        error: error.message, }); 
+      }
+    };
