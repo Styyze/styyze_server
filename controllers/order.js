@@ -616,7 +616,7 @@ export const initiateCheckout = async (req, res) => {
     const paystackResponse = await axios.post(
       "https://api.paystack.co/transaction/initialize",
       {
-        email: "hirenonso@gmail.com",
+        email: email,
         amount: preorder.totalAmount * 100,
         reference: paymentReference,
         callback_url: "https://styyze.vercel.app/marketplace/payment-success"

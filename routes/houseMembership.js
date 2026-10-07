@@ -2,6 +2,8 @@ import express from "express";
 
 import { inviteStaff, createHouse, searchHouse, getHouseStaff, houseVerificationStatus,
      getInvitations} from "../controllers/houseMembership.js";
+     
+
 
 
 import { protect } from '../middleware/auth.js';
