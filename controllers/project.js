@@ -187,18 +187,16 @@ const customer = await User.findById(customerId).select("username name");
 
 
 //Get Customer Projects//
-export const getCustomerProjects = async (
-    req,
-    res,
-    next
-)=>{
+export const getCustomerProjects = async( req, res,next)=>{
 
     try{
 
-
-        const projects =
-            await Project.find({
-                customerId:req.userId
+const {customerId}=req.query;
+if(customerId==="me"){
+    query.customerId=req.user.id;
+}
+        const projects = await Project.find({
+                customerId
             })
 
             .populate(
@@ -209,8 +207,6 @@ export const getCustomerProjects = async (
             .sort({
                 createdAt:-1
             });
-
-
 
         res.json({
             success:true,
@@ -381,11 +377,7 @@ await createNotification({
     }
 
 };
-/**
- * House responds to Quote
- *
- * Only used when PriceList does not exist.
- */
+
 export const respondToQuote = async ( req, res,next)=>{
     try{
 
@@ -466,4 +458,41 @@ const project =await Project.findOne({_id:req.params.id,houseId:req.userId});
 
     }
 
+};
+
+// getProjectById
+export const getProjectById = async (req, res, next) => {
+    try {
+        const userId = req.user?.id || req.userId;
+        const projectId = req.params.id;
+
+        const project = await Project.findById(projectId)
+            .populate("customerId", "name username avatar")
+            .populate("houseId", "name username avatar");
+
+        if (!project) {
+            return res.status(404).json({
+                success: false,
+                message: "Project not found"
+            });
+        }
+
+        const customerMatch = project.customerId && project.customerId._id.toString() === userId;
+        const houseMatch = project.houseId && project.houseId._id.toString() === userId;
+
+        if (userId && !customerMatch && !houseMatch) {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized to view this project"
+            });
+        }
+
+        res.json({
+            success: true,
+            project
+        });
+
+    } catch (error) {
+        next(error);
+    }
 };

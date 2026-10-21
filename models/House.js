@@ -50,6 +50,21 @@ username: {
       type: String,
       default: ""
     },
+    subaccountCode: {
+  type: String,
+  default: null,
+},
+
+subaccountCreatedAt: {
+  type: Date,
+  default: null,
+},
+
+subaccountStatus: {
+  type: String,
+  enum: ["not_created", "created", "failed"],
+  default: "not_created",
+},
      isVerified: {
       type: Boolean,
       default: false
