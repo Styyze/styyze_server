@@ -225,7 +225,8 @@ export const getOrdersBySellerId = async (req, res) => {
 // get orders by buyerId
 export const getOrdersByBuyerId = async (req, res) => {
   try {
-    const { buyer } = req.params;
+    //const { buyer } = req.params;
+    const buyer=req.user.id;
 
     //  Validate buyerId
     if (!mongoose.Types.ObjectId.isValid(buyer)) {
@@ -790,9 +791,10 @@ export const updateOrderDetails = async (req, res) => {
     const order = await Order.findById(orderId);
 
     if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found"
+      return res.status(200).json({
+        success: true,
+        message: "Order not found",
+        data:[]
       });
     }
 
@@ -904,13 +906,14 @@ export const getOrderById = async (req, res) => {
       });
     }
 
-    // 1️⃣ Fetch existing order
+    // Fetch existing order
     const order = await Order.findById(orderId);
 
     if (!order) {
-      return res.status(404).json({
+      return res.status(200).json({
         success: false,
-        message: 'Order not found'
+        message: 'Order not found',
+        data:[]
       });
     }
 
@@ -930,8 +933,8 @@ export const getOrderById = async (req, res) => {
       const product = await Product.findById(item.productId);
 
       if (!product) {
-        return res.status(404).json({
-          success: false,
+        return res.status(200).json({
+          success: true,
           message: `Product not found: ${item.productId}`
         });
       }
@@ -948,13 +951,13 @@ export const getOrderById = async (req, res) => {
       recalculatedTotal += product.price * item.quantity;
     }
 
-    // 3️⃣ Update order with fresh values
+    //  Update order with fresh values
     order.items = recalculatedItems;
     order.totalAmount = recalculatedTotal;
 
     await order.save();
 
-    // 4️⃣ Send final checkout summary
+    // Send final checkout summary
     return res.status(200).json({
       success: true,
       message: 'Checkout ready',

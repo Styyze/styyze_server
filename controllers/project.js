@@ -471,9 +471,10 @@ export const getProjectById = async (req, res, next) => {
             .populate("houseId", "name username avatar");
 
         if (!project) {
-            return res.status(404).json({
-                success: false,
-                message: "Project not found"
+            return res.status(200).json({
+                success: true,
+                message: "Project not found",
+                data:[]
             });
         }
 
