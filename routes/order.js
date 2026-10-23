@@ -22,8 +22,8 @@ const router = express.Router();
 
 router.post('/preorder', protect, createPreOrder ); 
 router.post('/buy_now', protect, createBuyNowPreOrder);
-router.get("/getOrders/:seller", getOrdersBySellerId);
-router.get("/buyerOrder/:buyer", getOrdersByBuyerId);
+router.get("/getOrders/:seller", protect,getOrdersBySellerId);
+router.get("/buyerOrder/:buyer", protect, getOrdersByBuyerId);
 router.get('/order/:orderId', getOrderById);
 router.get('/shipping/details/:preorderId',protect, getCheckoutData);
 router.get('/preorder/:preorderId',getPreOrderById );
