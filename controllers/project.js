@@ -464,7 +464,7 @@ const project =await Project.findOne({_id:req.params.id,houseId:req.userId});
 export const getProjectById = async (req, res, next) => {
     try {
         const userId = req.user?.id || req.userId;
-        const projectId = req.params.id;
+        const projectId = req.params.projectId;
 
         const project = await Project.findById(projectId)
             .populate("customerId", "name username avatar")
