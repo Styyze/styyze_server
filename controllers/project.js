@@ -478,15 +478,7 @@ export const getProjectById = async (req, res, next) => {
             });
         }
 
-        const customerMatch = project.customerId && project.customerId._id.toString() === userId;
-        const houseMatch = project.houseId && project.houseId._id.toString() === userId;
-
-        if (userId && !customerMatch && !houseMatch) {
-            return res.status(403).json({
-                success: false,
-                message: "Unauthorized to view this project"
-            });
-        }
+        
 
         res.json({
             success: true,
