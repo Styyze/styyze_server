@@ -156,7 +156,8 @@ console.log("preorder from client", preOrderId);
 // get orders by sellerId
 export const getOrdersBySellerId = async (req, res) => {
   try {
-    const { seller } = req.params;
+    //const { seller } = req.params;
+    const seller = req.user.id;
 
     if (!mongoose.Types.ObjectId.isValid(seller)) {
       return res.status(400).json({
