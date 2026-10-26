@@ -12,8 +12,10 @@ export const approveSeller = async (req, res) => {
   let house;
 
   try {
-    const { userId } = req.params;
-    const adminId = req.user?.id;
+    //const { userId } = req.params;
+    const userId="6add12f0c5e94f07783ac7d8";
+    //const adminId = req.user?.id;
+    const adminId= "6add12f0c5e94f07783ac7d8";
 
     // 1. Authenticate the admin.
     if (!adminId) {
@@ -94,9 +96,10 @@ export const approveSeller = async (req, res) => {
     ]);
 
     if (!user || !userProfile) {
-      return res.status(404).json({
+      return res.status(200).json({
         success: false,
-        message: 'User or user profile not found'
+        message: 'User or user profile not found',
+        data:[]
       });
     }
 
@@ -112,7 +115,7 @@ export const approveSeller = async (req, res) => {
     }
 
     if (!house) {
-      return res.status(404).json({
+      return res.status(200).json({
         success: false,
         message: 'Associated House not found'
       });
@@ -148,12 +151,9 @@ export const approveSeller = async (req, res) => {
           percentage_charge: platformPercentage,
           description: `Styyze seller account for ${house.name}`,
           primary_contact_name: verification.ownerName,
-          primary_contact_phone: verification.phone || ''
+          primary_contact_phone: verification.phone || '',
+          primary_contact_email : verification.email,
         };
-
-        if (house.email) {
-          payload.primary_contact_email = house.email;
-        }
 
         const paystackResponse = await axios.post(
           `${PAYSTACK_BASE_URL}/subaccount`,
@@ -227,7 +227,7 @@ export const approveSeller = async (req, res) => {
 
     // 7. Update the House's KYC status.
     // KYC can be approved even if Paystack subaccount creation failed.
-    house.verificationStatus = 'verified';
+    house.isVerified = true;
     await house.save();
 
     // 8. Return a clear result to the admin.

@@ -75,7 +75,7 @@ export const verifyPayment = async (req, res) => {
 // paystack webhook
 
 export const paystackWebhook = async (req, res) => {
-  console.log("websocket received!");
+  console.log("webhook received!");
   try {
     const hash = crypto
       .createHmac("sha512", process.env.PAYSTACK_SECRET_KEY)
