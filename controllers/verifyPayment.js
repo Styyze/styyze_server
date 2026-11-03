@@ -50,7 +50,7 @@ export const verifyPayment = async (req, res) => {
     session.paymentStatus = "success";
     await session.save();
 
-    await PreOrder.findByIdndUpdate(session.preorderId, { status: "paid" });
+    await PreOrder.findByIdAndUpdate(session.preorderId, { status: "paid" });
     await CheckoutDetails.findOneAndUpdate({preorderId:session.preorderId}, { status: "paid" });
 
     await CheckoutSession.updateMany(
