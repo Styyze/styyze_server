@@ -4,7 +4,13 @@ const CheckoutSessionSchema = new mongoose.Schema({
   preorderId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'PreOrder',
-    required: true
+    required: false
+  },
+
+  projectId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Project', 
+    required: false
   },
 
   paymentProvider: {
@@ -20,7 +26,7 @@ const CheckoutSessionSchema = new mongoose.Schema({
 
   paymentStatus: {
     type: String,
-    enum: ['pending','success','failed', 'cancelled' ],
+    enum: ['pending', 'success', 'failed', 'cancelled'],
     default: 'pending'
   },
 
@@ -37,5 +43,12 @@ const CheckoutSessionSchema = new mongoose.Schema({
   gatewayResponse: Object
 
 }, { timestamps: true });
+
+CheckoutSessionSchema.pre('validate', function(next) {
+  if (!this.preorderId && !this.projectId) {
+    return next(new Error('A checkout session must have either a preorderId or a projectId.'));
+  }
+  next();
+});
 
 export default mongoose.model('CheckoutSession', CheckoutSessionSchema);

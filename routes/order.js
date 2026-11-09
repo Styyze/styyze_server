@@ -11,7 +11,8 @@ import {
     createBuyNowPreOrder,
     updateCheckoutDetails, 
     initiateCheckout,
-    getCheckoutData
+    getCheckoutData,
+    initiateProjectPayment
 } from '../controllers/order.js'
 
 
@@ -30,7 +31,7 @@ router.get('/preorder/:preorderId',getPreOrderById );
 router.post('/order/checkout-details/:preOrderId', protect, createCheckoutDetails);
 router.patch('/order/updateCheckoutDetails/:preOrderId', protect, updateCheckoutDetails );
 router.post("/order/pay", protect, initiateCheckout);
-
+router.post("/order/:projectId/pay", protect, initiateProjectPayment);
 
 
 

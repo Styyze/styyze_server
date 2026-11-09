@@ -8,6 +8,9 @@ import mongoose from 'mongoose';
 import crypto from 'crypto';
 import axios from "axios";
 import asyncHandler from 'express-async-handler';
+import Project from '../models/Project.js';
+import House from '../models/House.js';
+import Quote from '../models/Quote.js';
 
 // Create check-out details
 export const createCheckoutDetails = async (req, res) => {
@@ -652,6 +655,162 @@ export const initiateCheckout = async (req, res) => {
     });
   }
 };
+
+// intiate payment for project
+
+
+// Central fee calculation helper (Brief section 2.2)
+const calculatePlatformFee = (house, amount) => {
+  const percentage = process.env.PAYSTACK_PLATFORM_PERCENTAGE_CHARGE || 0.07;
+  return Math.round(amount * percentage * 100) / 100;
+};
+
+export const initiateProjectPayment = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { email } = req.body;
+    const buyerId = req.user.id;
+console.log("received!");
+    // Validate IDs
+    if (
+      !mongoose.Types.ObjectId.isValid(projectId) ||
+      !mongoose.Types.ObjectId.isValid(buyerId)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid projectId or buyerId"
+      });
+    }
+
+    // Find project and verify customer ownership
+    const project = await Project.findOne({
+      _id: projectId,
+      customerId: buyerId
+    });
+
+    if (!project) {
+      return res.status(200).json({
+        success: false,
+        message: "Project not found or unauthorized",
+        data:[]
+      });
+    }
+
+    // Check if already paid
+    if (project.paymentStatus === "paid" || project.status === "paid") {
+      return res.status(409).json({
+        success: false,
+        message: "Project has already been paid for"
+      });
+    }
+
+    let amount = 0;
+    let currency = 'NGN';
+
+    if (project.pricing && project.pricing.amount) {
+      amount = project.pricing.amount;
+      currency = project.pricing.currency || 'GHS';
+    } else {
+      const quote = await Quote.findOne({ projectId: project._id, status: 'accepted' });
+      if (!quote) {
+        return res.status(400).json({
+          success: false,
+          message: "Project does not have an accepted price or quote yet"
+        });
+      }
+      amount = quote.amount;
+      currency = quote.currency || 'NGN';
+    }
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid project amount"
+      });
+    }
+
+    const house = await House.findById(project.houseId);
+    if (!house) {
+      return res.status(404).json({
+        success: false,
+        message: "Associated House not found"
+      });
+    }
+
+    if (!house.isVerified || house.subaccountStatus !== 'created' || !house.subaccountCode) {
+      return res.status(422).json({
+        success: false,
+        message: "House is not fully verified or payment subaccount is missing"
+      });
+    }
+
+    const paymentReference = crypto.randomUUID();
+    const platformFee = calculatePlatformFee(house, amount);
+    const amountInSubunits = Math.round(amount * 100);
+
+    // Create checkout session for verification mapping
+    const session = await CheckoutSession.create({
+      projectId,
+      paymentReference,
+      paymentStatus: "pending",
+      totalAmount: amount,
+      currency: currency,
+      email: email || req.user.email,
+      amountInKobo: amountInSubunits,
+      paymentProvider: "paystack"
+    });
+
+    // Save payment reference on project for tracking & resumability
+    project.paymentReference = paymentReference;
+    await project.save();
+
+    // Initialize Paystack transaction with House subaccount split & fee
+    const paystackResponse = await axios.post(
+      "https://api.paystack.co/transaction/initialize",
+      {
+        email: email || req.user.email,
+        amount: amountInSubunits,
+        currency: currency,
+        reference: paymentReference,
+        subaccount: house.subaccountCode,
+        transaction_charge: Math.round(platformFee * 100),
+        bearer: "subaccount",
+        metadata: {
+          type: "project",
+          projectId: project._id.toString(),
+          houseId: house._id.toString(),
+          customerId: buyerId.toString()
+        },
+        callback_url: `${process.env.FRONTEND_URL || "https://styyze.vercel.app"}/marketplace/payment-success?type=project&projectId=${project._id}`
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    const { authorization_url, access_code } = paystackResponse.data.data;
+
+    return res.json({
+      success: true,
+      data: {
+        session,
+        authorization_url,
+        access_code,
+        reference: paymentReference
+      }
+    });
+
+  } catch (error) {
+    console.error("Project payment initialization error:", error?.response?.data || error.message);
+    return res.status(500).json({
+      success: false,
+      message: error?.response?.data?.message || error.message
+    });
+  }
+};
 //completed Order
 
 export const completeOrder = async (req, res) => {
@@ -929,7 +1088,6 @@ export const getOrderById = async (req, res) => {
     let recalculatedItems = [];
     let recalculatedTotal = 0;
 
-    // 2️⃣ Re-validate items against DB
     for (const item of order.items) {
       const product = await Product.findById(item.productId);
 

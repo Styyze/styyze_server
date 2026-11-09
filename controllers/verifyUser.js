@@ -12,8 +12,7 @@ export const approveSeller = async (req, res) => {
   let house;
 
   try {
-    //const { userId } = req.params;
-    const userId="6add12f0c5e94f07783ac7d8";
+    const userId="6aef22431e125426b9dc5550";
     //const adminId = req.user?.id;
     const adminId= "6add12f0c5e94f07783ac7d8";
 
@@ -42,7 +41,6 @@ export const approveSeller = async (req, res) => {
       });
     }
 
-    // percentage_charge is the percentage allocated to Styyze.
     const platformPercentage = Number(
       process.env.PAYSTACK_PLATFORM_PERCENTAGE_CHARGE
     );
@@ -59,8 +57,7 @@ export const approveSeller = async (req, res) => {
       });
     }
 
-    // 2. Find the verification record.
-    // Explicitly select bank fields because the schema uses select: false.
+    
     const verification = await SellerVerification.findOne({
       userId
     }).select('+bankAccountNumber +bankCode');
@@ -89,7 +86,6 @@ export const approveSeller = async (req, res) => {
       });
     }
 
-    // 3. Confirm the required records exist before calling Paystack.
     const [user, userProfile] = await Promise.all([
       User.findById(userId),
       UserProfile.findOne({ userId })
@@ -103,14 +99,12 @@ export const approveSeller = async (req, res) => {
       });
     }
 
-    // Prefer the House associated with this verification.
     if (verification.houseId) {
       house = await House.findOne({
         _id: verification.houseId,
         ownerId: userId
       });
     } else {
-      // Compatibility fallback for older verification records.
       house = await House.findOne({ ownerId: userId });
     }
 
@@ -133,9 +127,7 @@ export const approveSeller = async (req, res) => {
       });
     }
 
-    // 4. Create the Paystack subaccount only if one does not exist.
-    // If approval previously succeeded but Paystack failed, this retries
-    // subaccount creation without creating another verification record.
+    
     let subaccountCreationFailed = false;
 
     if (!house.subaccountCode) {

@@ -19,9 +19,11 @@ const projectId= req.params.projectId;
         }
 
         const houseId= req.user.id;
+        console.log("houseId", houseId.toString());
+        console.log("projectId", projectId);
+
         const quote = await Quote.findOne({
             projectId: projectId,
-            houseId: houseId
         });
 
         if (!quote) {
