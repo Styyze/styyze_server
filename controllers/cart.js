@@ -2,15 +2,16 @@ import Cart from "../models/Cart.js";
 import Product from "../models/Product.js";
 import mongoose from "mongoose";
 
+
 export const createCartItems = async (req, res) => {
   try {
-    const { productId, quantity } = req.body;
-        const buyerId = req.user.id;
-console.log("from create item cart");
+    const { productId, quantity, size, color } = req.body;
+    const buyerId = req.user.id;
 
     // Validate ObjectIds
-    if (!mongoose.Types.ObjectId.isValid(buyerId) 
-      ||!mongoose.Types.ObjectId.isValid(productId)
+    if (
+      !mongoose.Types.ObjectId.isValid(buyerId) ||
+      !mongoose.Types.ObjectId.isValid(productId)
     ) {
       return res.status(400).json({
         success: false,
@@ -19,10 +20,9 @@ console.log("from create item cart");
     }
 
     // Validate quantity
-    const qty =
-      Number.isInteger(quantity) && quantity > 0
-        ? quantity
-        : null;
+    const qty = Number.isInteger(quantity) && quantity > 0
+      ? quantity
+      : null;
 
     if (!qty) {
       return res.status(400).json({
@@ -31,7 +31,7 @@ console.log("from create item cart");
       });
     }
 
-    // Check product exists
+    // Find product
     const productDoc = await Product.findById(productId);
 
     if (!productDoc) {
@@ -39,6 +39,26 @@ console.log("from create item cart");
         success: false,
         message: "Product not found"
       });
+    }
+
+    // Validate selected size
+    if (productDoc.size.length > 0) {
+      if (!size || !productDoc.size.includes(size)) {
+        return res.status(400).json({
+          success: false,
+          message: "Please select a valid product size"
+        });
+      }
+    }
+
+    // Validate selected color
+    if (productDoc.color.length > 0) {
+      if (!color || !productDoc.color.includes(color)) {
+        return res.status(400).json({
+          success: false,
+          message: "Please select a valid product color"
+        });
+      }
     }
 
     // Check stock
@@ -55,7 +75,12 @@ console.log("from create item cart");
     if (!cart) {
       cart = await Cart.create({
         buyerId,
-        items: [{ product: productId, quantity: qty }]
+        items: [{
+          product: productId,
+          quantity: qty,
+          size: size || null,
+          color: color || null
+        }]
       });
 
       return res.status(201).json({
@@ -64,9 +89,11 @@ console.log("from create item cart");
       });
     }
 
-    // Check if product already in cart
-    const existingItem = cart.items.find(
-    item => item.product?.toString() === productId);
+    const existingItem = cart.items.find(item =>
+      item.product?.toString() === productId &&
+      item.size === (size || null) &&
+      item.color === (color || null)
+    );
 
     if (existingItem) {
       const newQuantity = existingItem.quantity + qty;
@@ -83,7 +110,9 @@ console.log("from create item cart");
     } else {
       cart.items.push({
         product: productId,
-        quantity: qty
+        quantity: qty,
+        size: size || null,
+        color: color || null
       });
     }
 
@@ -95,7 +124,7 @@ console.log("from create item cart");
     });
 
   } catch (error) {
-    console.error("Create Cart Error:", error);
+    console.error("Create cart item error:", error);
 
     return res.status(500).json({
       success: false,
@@ -103,6 +132,7 @@ console.log("from create item cart");
     });
   }
 };
+
 
 export const getCartByUserId = async (req, res) => {
   try {

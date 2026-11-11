@@ -12,7 +12,19 @@ const CartItemSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 1
-    }
+    },
+    size: {
+      type: String,
+      default:null,
+      trim: true
+    },
+
+    color: {
+      type: String,
+      default:null,
+      trim: true
+    },
+
   },
   { _id: false }
 );
