@@ -1,7 +1,7 @@
 import express from "express";
 
 import { inviteStaff, createHouse, searchHouse, getHouseStaff, houseVerificationStatus,
-     getInvitations} from "../controllers/houseMembership.js";
+     getInvitations, houseAprovalStatus} from "../controllers/houseMembership.js";
      
 
 
@@ -12,6 +12,7 @@ import { protect } from '../middleware/auth.js';
 const router = express.Router();
 router.get("/houses/name/search", protect, searchHouse);
 router.get("/house/:houseId/verification", protect, houseVerificationStatus);
+router.get("/house/:houseId/approval/status", protect, houseAprovalStatus);
 router.post("/houses/create", protect, createHouse);
 router.get("/houses/staff/invitation", protect, getInvitations);
 router.post( "/houses/staff/invite", protect, inviteStaff);

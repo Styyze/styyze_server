@@ -1,5 +1,6 @@
 import User from "../models/Users.js";
 import HouseMembership from "../models/HouseMembership.js";
+import SellerVerification from '../models/verifySellers.js';
 
 import House from "../models/House.js";
 
@@ -95,6 +96,33 @@ export const houseVerificationStatus = async (req, res, next) => {
 
     } catch (error) {
         next(error);
+    }
+};     
+// house verification status
+export const houseAprovalStatus = async (req, res, next) => {
+    try {
+        const houseId = req.user.id;
+
+        const house = await SellerVerification.findOne({
+            houseId: houseId
+        });
+
+        if (!house) {
+            return res.status(200).json({
+                success: true,
+                message: "House record not found.",
+                data:[]
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "House fetched successfully.",
+            data: house
+        });
+
+    } catch (error) {
+        console.log("server error:", error);
     }
 };
 //search house
