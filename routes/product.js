@@ -6,10 +6,9 @@ import { authorize} from '../middleware/authorize.js';
 
 
 import {getAllProducts, } from '../controllers/getProducts.js';
-import {getProductById,deleteProduct, getProductsBySellerId, getCollection, updateProduct} from '../controllers/product.js';
+import {getProductById,deleteProduct, getProductsBySellerId, updateProduct} from '../controllers/product.js';
 
 const router = express.Router();
-router.get("/house/collections/:houseId", getCollection);
 router.post('/', protect, authorize('seller'), createProduct ); 
 router.get("/getAllProducts", getAllProducts);
 router.get("/:productId",getProductById);

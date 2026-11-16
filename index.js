@@ -40,6 +40,7 @@ import quoteRoute from "./routes/quote.js";
 import tapeMeasurementRoute from "./routes/tapeMeasurement.js";
 import  notificationRoute from "./routes/notifications.js";
 import bankRoute from "./routes/bankList.js";
+import collectionRoute from "./routes/houseCollection.js";
 
 
 
@@ -227,6 +228,7 @@ app.use("/api/", quoteRoute);
 app.use("/api/", tapeMeasurementRoute);
 app.use("/api/", notificationRoute);
 app.use("/api/", bankRoute);
+app.use("/api/", collectionRoute);
 
 
 app.use((req, res) => {

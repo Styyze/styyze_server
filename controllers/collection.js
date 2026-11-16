@@ -1,7 +1,7 @@
 
 import mongoose from "mongoose";
-import Collection from "../models/collection.model.js";
-import House from "../models/house.model.js";
+import Collection from "../models/HouseCollection.js";
+import House from "../models/House.js";
 
 // Helper: verify that the authenticated user owns the house
 const getOwnedHouse = async (houseId, userId) => {

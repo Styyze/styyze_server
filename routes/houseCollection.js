@@ -7,7 +7,7 @@ import {
   getHouseCollectionById,
   updateCollection,
   deleteCollection
-} from "../controllers/collection.controller.js";
+} from "../controllers/collection.js";
 
 import { protect } from '../middleware/auth.js';
 

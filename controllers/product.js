@@ -2,12 +2,10 @@ import Product from '../models/Product.js';
 import mongoose from 'mongoose';
 import User from '../models/Users.js';
 import asyncHandler from "express-async-handler";
-import Collection from '../models/HouseCollection.js';
 import House from "../models/House.js";
 
-export const createProduct = async (req, res) => {
-  const session = await mongoose.startSession();
 
+export const createProduct = async (req, res) => {
   try {
     const {
       title,
@@ -24,7 +22,7 @@ export const createProduct = async (req, res) => {
     if (!req.user || !req.user.id) {
       return res.status(401).json({
         success: false,
-        message: 'Not authenticated'
+        message: "Not authenticated"
       });
     }
 
@@ -36,7 +34,7 @@ export const createProduct = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: "User not found"
       });
     }
 
@@ -44,15 +42,28 @@ export const createProduct = async (req, res) => {
     if (!user.verified) {
       return res.status(403).json({
         success: false,
-        message: 'You must be a verified seller to create products'
+        message: "You must be a verified seller to create products"
       });
     }
 
     // Validate required fields
-    if (!title || !description || price === undefined) {
+    if (
+      !title?.trim() ||
+      !description?.trim() ||
+      price === undefined
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'title, description, and price are required'
+        message: "title, description, and price are required"
+      });
+    }
+
+    const productPrice = Number(price);
+
+    if (!Number.isFinite(productPrice) || productPrice < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Price must be a valid non-negative number"
       });
     }
 
@@ -63,7 +74,7 @@ export const createProduct = async (req, res) => {
     if (!Number.isFinite(stock) || stock < 0) {
       return res.status(400).json({
         success: false,
-        message: 'Stock must be a valid non-negative number'
+        message: "Stock must be a valid non-negative number"
       });
     }
 
@@ -75,151 +86,40 @@ export const createProduct = async (req, res) => {
     if (!house) {
       return res.status(404).json({
         success: false,
-        message: 'House not found for this seller'
+        message: "House not found for this seller"
       });
     }
 
-    let savedProduct;
-
-    // Start transaction
-    await session.withTransaction(async () => {
-
-      // Create product
-      const product = new Product({
-        seller: user._id,
-        title,
-        description,
-        price,
-        currency,
-        size,
-        color,
-        category,
-        stock,
-        media: Array.isArray(media) ? media : []
-      });
-
-      const products = await Product.create(
-        [product],
-        { session }
-      );
-
-      savedProduct = products[0];
-
-      // Determine product availability
-      const productStatus = stock > 0
-        ? 'active'
-        : 'out_of_stock';
-
-      // Product snapshot for collection
-      const productSnapshot = {
-        product: savedProduct._id,
-        title: savedProduct.title,
-        description: savedProduct.description,
-        price: savedProduct.price,
-        media: savedProduct.media,
-        currency: savedProduct.currency,
-        size: savedProduct.size,
-        color: savedProduct.color,
-        category: savedProduct.category,
-        stock: savedProduct.stock,
-        status: productStatus,
-        addedAt: new Date(),
-        deletedAt: null
-      };
-
-      // Add product to house collection.
-      await Collection.findOneAndUpdate(
-        { houseId: house._id },
-        {
-          $setOnInsert: {
-            house: house._id
-          },
-          $push: {
-            products: productSnapshot
-          }
-        },
-        {
-          upsert: true,
-          new: true,
-          session,
-          setDefaultsOnInsert: true
-        }
-      );
-
+    // Create product
+    const product = await Product.create({
+      seller: user._id,
+      title: title.trim(),
+      description: description.trim(),
+      price: productPrice,
+      currency,
+      size,
+      color,
+      category,
+      stock,
+      media: Array.isArray(media) ? media : []
     });
 
     return res.status(201).json({
       success: true,
-      message: 'Product created and added to house collection successfully',
-      data: savedProduct
+      message: "Product created successfully",
+      data: product
     });
 
   } catch (error) {
-    console.error('Create product error:', error);
+    console.error("Create product error:", error);
 
     return res.status(500).json({
       success: false,
-      message: 'Failed to create product'
-    });
-
-  } finally {
-    await session.endSession();
-  }
-};
-// get collection by houseId
-export const getCollection = async (req, res) => {
-  try {
-    const { houseId } = req.params;
-
-    // Validate houseId
-    if (!mongoose.Types.ObjectId.isValid(houseId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid house ID'
-      });
-    }
-
-    // Check if house exists
-    const house = await House.findById(houseId);
-
-    if (!house) {
-      return res.status(404).json({
-        success: false,
-        message: 'House not found'
-      });
-    }
-
-    // Fetch house collection
-    const collection = await Collection.findOne({
-      house: houseId
-    }).lean();
-
-    if (!collection) {
-      return res.status(200).json({
-        success: true,
-        message: 'No collection found for this house',
-        data: {
-          house: houseId,
-          products: []
-        }
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: 'Collection retrieved successfully',
-      data: collection
-    });
-
-  } catch (error) {
-    console.error('Get collection error:', error);
-
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve collection'
+      message: "Failed to create product"
     });
   }
 };
+
 // Fetch product By product Id
 
 export const getProductById = async (req, res) => {
