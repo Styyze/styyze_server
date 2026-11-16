@@ -104,7 +104,7 @@ export const houseAprovalStatus = async (req, res, next) => {
         const houseId = req.user.id;
 
         const house = await SellerVerification.findOne({
-            houseId: houseId
+            userId: houseId
         });
 
         if (!house) {
