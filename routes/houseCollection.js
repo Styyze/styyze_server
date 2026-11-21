@@ -12,9 +12,7 @@ import {
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
-
-
-router.post("/create/collection/:houseId",createCollection);
+router.post("/create/collection/:houseId", protect, createCollection);
 
 router.get("/get/house/collections/:houseId", protect, getHouseCollections);
 
