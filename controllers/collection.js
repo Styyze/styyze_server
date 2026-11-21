@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 import Collection from "../models/HouseCollection.js";
 import House from "../models/House.js";
 
-// Helper: verify that the authenticated user owns the house
 const getOwnedHouse = async (houseId, userId) => {
   return House.findOne({
     _id: houseId,
@@ -36,7 +35,8 @@ export const createCollection = async (req, res) => {
     if (!house) {
       return res.status(404).json({
         success: false,
-        message: "House not found or unauthorized."
+        message: "House not found or unauthorized.",
+        data:[]
       });
     }
 
@@ -89,7 +89,8 @@ export const getHouseCollections = async (req, res) => {
     if (!house) {
       return res.status(404).json({
         success: false,
-        message: "House not found or unauthorized."
+        message: "House not found or unauthorized.",
+        data:[]
       });
     }
 
