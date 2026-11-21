@@ -55,13 +55,7 @@ export const createCollection = async (req, res) => {
     });
 
   } catch (error) {
-    if (error.code === 11000) {
-      return res.status(409).json({
-        success: false,
-        message: "A collection with this name already exists."
-      });
-    }
-
+    
     console.error("Create collection error:", error);
 
     return res.status(500).json({
