@@ -1,7 +1,7 @@
 import express from "express";
 
 import { inviteStaff, createHouse, searchHouse, getHouseStaff, houseVerificationStatus,
-     getInvitations, houseAprovalStatus} from "../controllers/houseMembership.js";
+     getInvitations, houseAprovalStatus, removeStaff} from "../controllers/houseMembership.js";
      
 
 
@@ -17,6 +17,7 @@ router.post("/houses/create", protect, createHouse);
 router.get("/houses/staff/invitation", protect, getInvitations);
 router.post( "/houses/staff/invite", protect, inviteStaff);
 router.get("/get/staff/:houseId", getHouseStaff);
+router.delete("/remove/staff/:staffId", removeStaff);
 
 
 

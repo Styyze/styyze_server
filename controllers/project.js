@@ -5,6 +5,47 @@ import Quote from "../models/Quote.js";
 import User from '../models/Users.js';
 
 import {createNotification } from './notificationServices.js';
+
+const buildMeasurementSnapshot = async (measurementProfileId, customerId) => {
+
+    const tape = await TapeMeasurement.findOne({
+        _id: measurementProfileId,
+        userId: customerId
+    }).lean();
+
+    if (tape) {
+        return {
+            values: {
+                top: tape.topMeasurements,
+                sleeveLengths: tape.sleeveLengths,
+                trouser: tape.trouserMeasurements,
+                cap: tape.capMeasurements
+            },
+            unit: tape.unit,
+            source: "tape",
+            sleeveMeasurementOrigin: tape.sleeveMeasurementOrigin,
+            capturedAt: new Date()
+        };
+    }
+
+    const aiScan = await CustomOrder.findOne({
+        _id: measurementProfileId,
+        userId: customerId
+    }).lean();
+
+    if (aiScan?.ai_measurement_data?.measurements) {
+        return {
+            values: aiScan.ai_measurement_data.measurements,
+            unit: aiScan.ai_measurement_data.unit || "cm",
+            source: "ai",
+            capturedAt: new Date()
+        };
+    }
+
+    return null;
+};
+
+
 export const createProject = async (req, res, next) => {
     try {
 
@@ -33,6 +74,32 @@ export const createProject = async (req, res, next) => {
 
 
         const customerId = req.user.id;
+
+
+        let measurements;
+
+        if (measurementProfileId) {
+
+            if (!mongoose.isValidObjectId(measurementProfileId)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid measurementProfileId"
+                });
+            }
+
+            measurements = await buildMeasurementSnapshot(
+                measurementProfileId,
+                customerId
+            );
+
+            if (!measurements) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Measurement profile not found"
+                });
+            }
+        }
+
 
         let pricing;
 
@@ -91,10 +158,22 @@ export const createProject = async (req, res, next) => {
             }
 
         }
-        
+
+
+       
+        const isInstantPrice = pricing.source !== "quote";
+        const now = new Date();
+
+        if (isInstantPrice) {
+            pricing.finalized = true;
+            pricing.finalizedAt = now;
+        }
+
         const project = await Project.create({
 
             type,
+
+            status: isInstantPrice ? "accepted" : "submitted",
 
             customerId,
 
@@ -112,6 +191,9 @@ export const createProject = async (req, res, next) => {
 
             measurementProfileId,
 
+            // NEW
+            measurements,
+
             fabricSource,
 
             eventDate,
@@ -119,9 +201,32 @@ export const createProject = async (req, res, next) => {
 
             notes,
 
-            pricing
+            pricing,
+
+            acceptedAt: isInstantPrice ? now : null
 
         });
+
+
+        
+        if (pricing.source === "quote") {
+
+            await Quote.create({
+
+                projectId: project._id,
+
+                houseId,
+
+                userId: customerId,
+
+                amount: null,
+
+                status: "awaiting_house"
+
+            });
+
+        }
+
 
 // send notification
 const customer = await User.findById(customerId).select("username name");
@@ -145,24 +250,6 @@ const customer = await User.findById(customerId).select("username name");
     actionUrl: "/projects"
 });
 
-        if (pricing.source === "quote") {
-
-            await Quote.create({
-
-                projectId: project._id,
-
-                houseId,
-
-                userId: customerId,
-
-                amount: null,
-
-                status: "awaiting_house"
-
-            });
-
-        }
-
 
         return res.status(201).json({
 
@@ -171,7 +258,10 @@ const customer = await User.findById(customerId).select("username name");
             message:
                 pricing.source === "quote"
                     ? "Project submitted. Waiting for House pricing."
-                    : "Project submitted with fixed pricing.",
+                    : "Project submitted with fixed pricing. Proceed to payment.",
+
+            // NEW: tells the frontend to send the customer to payment
+            requiresPayment: isInstantPrice,
 
             project
 

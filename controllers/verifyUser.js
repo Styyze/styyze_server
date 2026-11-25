@@ -182,11 +182,9 @@ export const approveSeller = async (req, res) => {
       } catch (paystackError) {
         subaccountCreationFailed = true;
 
-        // Keep the KYC result separate from the subaccount result.
         house.subaccountStatus = 'failed';
         await house.save();
 
-        // Do not log bank details, request payloads, or secret keys.
         console.error(
           'Paystack subaccount creation failed:',
           paystackError.response?.data?.message ||
@@ -194,12 +192,10 @@ export const approveSeller = async (req, res) => {
         );
       }
     } else {
-      // A saved subaccount code means we should not create another.
       house.subaccountStatus = 'created';
     }
 
    
-    // subaccount creation.
     if (verification.status !== 'approved') {
       verification.status = 'approved';
       verification.approvedBy = adminId;
@@ -209,7 +205,6 @@ export const approveSeller = async (req, res) => {
       await verification.save();
     }
 
-    // 6. Update the user and profile.
     user.verified = true;
     user.role = 'seller';
     await user.save();
@@ -217,12 +212,10 @@ export const approveSeller = async (req, res) => {
     userProfile.verified = true;
     await userProfile.save();
 
-    // 7. Update the House's KYC status.
-    // KYC can be approved even if Paystack subaccount creation failed.
+    
     house.isVerified = true;
     await house.save();
 
-    // 8. Return a clear result to the admin.
     if (subaccountCreationFailed) {
       return res.status(200).json({
         success: true,

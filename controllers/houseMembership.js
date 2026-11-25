@@ -333,3 +333,47 @@ export const getHouseStaff = async (req, res) => {
     });
   }
 };
+
+// remove staff
+export const removeStaff = async (req, res, next) => {
+
+    try {
+
+        const { userId } = req.params;
+
+        const houseId = req.user.id;
+
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: "Staff user ID is required"
+            });
+        }
+
+        const membership = await HouseMembership.findOne({
+            userId,
+            houseId,
+            role: "staff"
+        });
+
+        if (!membership) {
+            return res.status(404).json({
+                success: false,
+                message: "Staff member not found"
+            });
+        }
+
+        await HouseMembership.findByIdAndDelete(membership._id);
+
+        return res.status(200).json({
+            success: true,
+            message: "Staff member removed successfully"
+        });
+
+    } catch (error) {
+
+        next(error);
+
+    }
+
+};
