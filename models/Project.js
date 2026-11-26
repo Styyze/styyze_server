@@ -98,6 +98,50 @@ const pricingSchema = new Schema(
     _id: false,
   }
 );
+
+
+/**
+ * Snapshot of the customer's measurements, copied onto the Project at
+ * submission so later edits by the customer never change an order in
+ * progress (brief section 4.5).
+ */
+const measurementSnapshotSchema = new Schema(
+  {
+    // The measurement values as captured (tape fields or AI output).
+    values: {
+      type: Schema.Types.Mixed,
+      default: {},
+    },
+
+    // The unit the customer entered, e.g. "cm" or "in".
+    unit: {
+      type: String,
+      lowercase: true,
+      trim: true,
+    },
+
+    // Where the measurements came from.
+    source: {
+      type: String,
+      enum: ["tape", "ai"],
+    },
+
+    sleeveMeasurementOrigin: {
+      type: String,
+      trim: true,
+    },
+
+    capturedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
+
 const projectSchema = new Schema(
   {
    
@@ -201,6 +245,13 @@ const projectSchema = new Schema(
       default: null,
     },
 
+    // Snapshot of the measurements at submission (brief 4.5).
+    // Left undefined on Projects that have none.
+    measurements: {
+      type: measurementSnapshotSchema,
+      default: undefined,
+    },
+
     
 
     fabricSource: {
@@ -231,6 +282,37 @@ const projectSchema = new Schema(
     pricing: {
       type: pricingSchema,
       required: true,
+    },
+
+
+    // ---- Payment and acceptance (brief 2.5) ----
+
+    paymentStatus: {
+      type: String,
+      enum: ["unpaid", "paid", "refunded"],
+      default: "unpaid",
+      index: true,
+    },
+
+    // Set when the payment is confirmed (verify or webhook).
+    paidAt: {
+      type: Date,
+      default: null,
+    },
+
+    // Paystack reference of the latest payment attempt.
+    paymentReference: {
+      type: String,
+      trim: true,
+      default: null,
+      index: true,
+    },
+
+    // Set when the price is agreed: the customer accepted a quote,
+    // or an instant price was confirmed at submission.
+    acceptedAt: {
+      type: Date,
+      default: null,
     },
 
   },
